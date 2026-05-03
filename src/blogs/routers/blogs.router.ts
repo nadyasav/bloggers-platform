@@ -4,6 +4,8 @@ import { getBlogByIdHandler } from './handlers/get-blog.handler';
 import { createBlogHandler } from './handlers/create-blog.handler';
 import { updateBlogHandler } from './handlers/update-blog.handler';
 import { deleteBlogHandler } from './handlers/delete-blog.handler';
+import { blogValidation } from '../validation/blog.validation';
+import { validationResultMiddleware } from '../../core/middlewares/validation-result.middleware';
 
 export const blogsRouter = Router();
 
@@ -12,8 +14,8 @@ blogsRouter
 
   .get('/:id', getBlogByIdHandler)
 
-  .post('', createBlogHandler)
+  .post('', blogValidation, validationResultMiddleware, createBlogHandler)
 
-  .put('/:id', updateBlogHandler)
+  .put('/:id', blogValidation, validationResultMiddleware, updateBlogHandler)
 
   .delete('/:id', deleteBlogHandler);
