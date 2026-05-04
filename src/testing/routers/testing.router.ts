@@ -6,5 +6,7 @@ export const testingRouter = Router();
 testingRouter.delete('/all-data', (_, res: Response) => {
   db.blogs.clear();
   db.nextBlogId = 0;
+  db.posts.clear();
+  db.nextPostId = 0;
   res.status(204).send();
 });

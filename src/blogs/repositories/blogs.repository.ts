@@ -24,13 +24,7 @@ export const blogsRepository = {
     db.blogs.set(id, newBlog);
     return newBlog;
   },
-  update(id: string, dto: BlogInputDto): void {
-    const blog = db.blogs.get(id);
-
-    if (!blog) {
-      throw new NotFoundError(BLOG_NOT_FOUND);
-    }
-
+  update(blog: Blog, dto: BlogInputDto): void {
     const updatedBlog: Blog = {
       ...blog,
       name: dto.name,
@@ -38,7 +32,7 @@ export const blogsRepository = {
       websiteUrl: dto.websiteUrl,
     };
 
-    db.blogs.set(id, updatedBlog);
+    db.blogs.set(blog.id, updatedBlog);
   },
   delete(id: string): void {
     if (!db.blogs.has(id)) {
