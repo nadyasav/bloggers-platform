@@ -4,3 +4,5 @@ export type Blog = {
   description: string;
   websiteUrl: string;
 };
+
+export type BlogDb = Omit<Blog, 'id'>;

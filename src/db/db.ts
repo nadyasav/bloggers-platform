@@ -1,9 +1,27 @@
-import { Blog } from '../blogs/types/blog.types';
-import { Post } from '../posts/types/post.types';
+import { Collection, Db, MongoClient } from 'mongodb';
+import { BlogDb } from '../blogs/types/blog.types';
+import { PostDb } from '../posts/types/post.types';
 
-export const db = {
-  blogs: new Map<string, Blog>(),
-  nextBlogId: 0,
-  posts: new Map<string, Post>(),
-  nextPostId: 0,
+const DB_NAME = 'bloggers-platform';
+const BLOGS_COLLECTION_NAME = 'blogs';
+const POSTS_COLLECTION_NAME = 'posts';
+
+export let blogsCollection: Collection<BlogDb>;
+export let postsCollection: Collection<PostDb>;
+
+export const connectToDb = async (): Promise<void> => {
+  const client = new MongoClient(process.env.MONGODB_URL!);
+  const db: Db = client.db(DB_NAME);
+
+  blogsCollection = db.collection<BlogDb>(BLOGS_COLLECTION_NAME);
+  postsCollection = db.collection<PostDb>(POSTS_COLLECTION_NAME);
+
+  try {
+    await client.connect();
+    await db.command({ ping: 1 });
+    console.log('Connected to database');
+  } catch (error) {
+    await client.close();
+    throw new Error(`Failed to connect to database: ${error}`);
+  }
 };

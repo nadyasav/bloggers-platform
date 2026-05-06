@@ -1,16 +1,21 @@
 import { Request, Response } from 'express';
 import { blogsRepository } from '../../repositories/blogs.repository';
 import { postsRepository } from '../../../posts/repositories/posts.repository';
-import { BLOG_NOT_FOUND } from '../../blog.constants';
+import { NotFoundError } from '../../../core/errors/not-found.error';
 
-export function deleteBlogHandler(req: Request<{ id: string }>, res: Response) {
-  const blog = blogsRepository.getById(req.params.id);
+export async function deleteBlogHandler(
+  req: Request<{ id: string }>,
+  res: Response,
+) {
+  try {
+    await postsRepository.deleteByBlogId(req.params.id);
+    await blogsRepository.delete(req.params.id);
+    res.status(204).send();
+  } catch (error) {
+    if (error instanceof NotFoundError) {
+      return res.status(404).send({ message: error.message });
+    }
 
-  if (!blog) {
-    return res.status(404).send({ message: BLOG_NOT_FOUND });
+    throw error;
   }
-
-  postsRepository.deleteByBlogId(blog.id);
-  blogsRepository.delete(blog.id);
-  res.status(204).send();
 }

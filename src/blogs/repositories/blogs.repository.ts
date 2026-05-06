@@ -1,44 +1,48 @@
-import { db } from '../../db/db';
 import { BlogInputDto } from '../dto/blog-input.dto';
-import { Blog } from '../types/blog.types';
+import { BlogDb } from '../types/blog.types';
 import { NotFoundError } from '../../core/errors/not-found.error';
 import { BLOG_NOT_FOUND } from '../blog.constants';
+import { ObjectId, WithId } from 'mongodb';
+import { blogsCollection } from '../../db/db';
 
 export const blogsRepository = {
-  getAll(): Blog[] {
-    return Array.from(db.blogs.values());
+  async getAll(): Promise<WithId<BlogDb>[]> {
+    return blogsCollection.find().toArray();
   },
-  getById(id: string): Blog | undefined {
-    return db.blogs.get(id);
+  async getById(id: string): Promise<WithId<BlogDb> | null> {
+    return blogsCollection.findOne({ _id: new ObjectId(id) });
   },
-  create(dto: BlogInputDto): Blog {
-    const id = String(db.nextBlogId++);
-
-    const newBlog: Blog = {
-      id,
+  async create(dto: BlogInputDto): Promise<WithId<BlogDb>> {
+    const newBlog = {
       name: dto.name,
       description: dto.description,
       websiteUrl: dto.websiteUrl,
     };
 
-    db.blogs.set(id, newBlog);
-    return newBlog;
+    const result = await blogsCollection.insertOne(newBlog);
+    return { _id: result.insertedId, ...newBlog };
   },
-  update(blog: Blog, dto: BlogInputDto): void {
-    const updatedBlog: Blog = {
-      ...blog,
-      name: dto.name,
-      description: dto.description,
-      websiteUrl: dto.websiteUrl,
-    };
+  async update(id: string, dto: BlogInputDto): Promise<void> {
+    const result = await blogsCollection.updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          name: dto.name,
+          description: dto.description,
+          websiteUrl: dto.websiteUrl,
+        },
+      },
+    );
 
-    db.blogs.set(blog.id, updatedBlog);
-  },
-  delete(id: string): void {
-    if (!db.blogs.has(id)) {
+    if (result.matchedCount === 0) {
       throw new NotFoundError(BLOG_NOT_FOUND);
     }
+  },
+  async delete(id: string): Promise<void> {
+    const result = await blogsCollection.deleteOne({ _id: new ObjectId(id) });
 
-    db.blogs.delete(id);
+    if (result.deletedCount === 0) {
+      throw new NotFoundError(BLOG_NOT_FOUND);
+    }
   },
 };

@@ -6,3 +6,5 @@ export type Post = {
   blogId: string;
   blogName: string;
 };
+
+export type PostDb = Omit<Post, 'id'>;
