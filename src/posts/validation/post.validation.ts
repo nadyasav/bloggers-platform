@@ -51,7 +51,9 @@ const blogIdValidation = body(POST_KEYS.blogId)
   .bail()
   .trim()
   .notEmpty()
-  .withMessage(`${POST_KEYS.blogId} is required`);
+  .withMessage(`${POST_KEYS.blogId} is required`)
+  .isMongoId()
+  .withMessage(`${POST_KEYS.blogId} has invalid format`);
 
 export const postValidation = [
   titleValidation,

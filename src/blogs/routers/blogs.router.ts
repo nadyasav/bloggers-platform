@@ -7,13 +7,19 @@ import { deleteBlogHandler } from './handlers/delete-blog.handler';
 import { blogValidation } from '../validation/blog.validation';
 import { validationResultMiddleware } from '../../core/middlewares/validation-result.middleware';
 import { basicAuthMiddleware } from '../../core/middlewares/auth/basic-auth.middleware';
+import { idParamValidation } from '../../core/validation/id-param.validation';
 
 export const blogsRouter = Router();
 
 blogsRouter
   .get('', getBlogsHandler)
 
-  .get('/:id', getBlogByIdHandler)
+  .get(
+    '/:id',
+    idParamValidation,
+    validationResultMiddleware,
+    getBlogByIdHandler,
+  )
 
   .post(
     '',
@@ -26,9 +32,16 @@ blogsRouter
   .put(
     '/:id',
     basicAuthMiddleware,
+    idParamValidation,
     blogValidation,
     validationResultMiddleware,
     updateBlogHandler,
   )
 
-  .delete('/:id', basicAuthMiddleware, deleteBlogHandler);
+  .delete(
+    '/:id',
+    basicAuthMiddleware,
+    idParamValidation,
+    validationResultMiddleware,
+    deleteBlogHandler,
+  );

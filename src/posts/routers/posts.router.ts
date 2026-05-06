@@ -7,13 +7,19 @@ import { updatePostHandler } from './handlers/update-post.handler';
 import { basicAuthMiddleware } from '../../core/middlewares/auth/basic-auth.middleware';
 import { postValidation } from '../validation/post.validation';
 import { validationResultMiddleware } from '../../core/middlewares/validation-result.middleware';
+import { idParamValidation } from '../../core/validation/id-param.validation';
 
 export const postsRouter = Router();
 
 postsRouter
   .get('', getPostsHandler)
 
-  .get('/:id', getPostByIdHandler)
+  .get(
+    '/:id',
+    idParamValidation,
+    validationResultMiddleware,
+    getPostByIdHandler,
+  )
 
   .post(
     '',
@@ -26,9 +32,16 @@ postsRouter
   .put(
     '/:id',
     basicAuthMiddleware,
+    idParamValidation,
     postValidation,
     validationResultMiddleware,
     updatePostHandler,
   )
 
-  .delete('/:id', basicAuthMiddleware, deletePostHandler);
+  .delete(
+    '/:id',
+    basicAuthMiddleware,
+    idParamValidation,
+    validationResultMiddleware,
+    deletePostHandler,
+  );
