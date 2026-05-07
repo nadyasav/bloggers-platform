@@ -19,7 +19,9 @@ export const setupApp = (app: Express) => {
       return res.status(400).send({ message: 'Invalid JSON' });
     }
 
-    res.status(err.status || 500).send({ message: err.message });
+    res
+      .status(err.status || 500)
+      .send({ message: err.message || 'Internal server error' });
   });
 
   return app;

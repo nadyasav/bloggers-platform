@@ -2,7 +2,7 @@ import { BlogInputDto } from '../dto/blog-input.dto';
 import { BlogDb } from '../types/blog.types';
 import { NotFoundError } from '../../core/errors/not-found.error';
 import { BLOG_NOT_FOUND } from '../blog.constants';
-import { ObjectId, WithId } from 'mongodb';
+import { ClientSession, ObjectId, WithId } from 'mongodb';
 import { blogsCollection } from '../../db/db';
 
 export const blogsRepository = {
@@ -22,7 +22,11 @@ export const blogsRepository = {
     const result = await blogsCollection.insertOne(newBlog);
     return { _id: result.insertedId, ...newBlog };
   },
-  async update(id: string, dto: BlogInputDto): Promise<void> {
+  async update(
+    id: string,
+    dto: BlogInputDto,
+    session?: ClientSession,
+  ): Promise<void> {
     const result = await blogsCollection.updateOne(
       { _id: new ObjectId(id) },
       {
@@ -32,14 +36,18 @@ export const blogsRepository = {
           websiteUrl: dto.websiteUrl,
         },
       },
+      { session },
     );
 
     if (result.matchedCount === 0) {
       throw new NotFoundError(BLOG_NOT_FOUND);
     }
   },
-  async delete(id: string): Promise<void> {
-    const result = await blogsCollection.deleteOne({ _id: new ObjectId(id) });
+  async delete(id: string, session?: ClientSession): Promise<void> {
+    const result = await blogsCollection.deleteOne(
+      { _id: new ObjectId(id) },
+      { session },
+    );
 
     if (result.deletedCount === 0) {
       throw new NotFoundError(BLOG_NOT_FOUND);

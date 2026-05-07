@@ -6,11 +6,12 @@ const DB_NAME = 'bloggers-platform';
 const BLOGS_COLLECTION_NAME = 'blogs';
 const POSTS_COLLECTION_NAME = 'posts';
 
+export let client: MongoClient;
 export let blogsCollection: Collection<BlogDb>;
 export let postsCollection: Collection<PostDb>;
 
 export const connectToDb = async (): Promise<void> => {
-  const client = new MongoClient(process.env.MONGODB_URL!);
+  client = new MongoClient(process.env.MONGODB_URL!);
   const db: Db = client.db(DB_NAME);
 
   blogsCollection = db.collection<BlogDb>(BLOGS_COLLECTION_NAME);

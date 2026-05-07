@@ -2,7 +2,7 @@ import { PostInputDto } from '../dto/post-input.dto';
 import { PostDb } from '../types/post.types';
 import { NotFoundError } from '../../core/errors/not-found.error';
 import { POST_NOT_FOUND } from '../post.constants';
-import { ObjectId, WithId } from 'mongodb';
+import { ClientSession, ObjectId, WithId } from 'mongodb';
 import { postsCollection } from '../../db/db';
 
 export const postsRepository = {
@@ -49,11 +49,19 @@ export const postsRepository = {
       throw new NotFoundError(POST_NOT_FOUND);
     }
   },
-  async updateBlogNameField(blogId: string, blogName: string): Promise<void> {
-    await postsCollection.updateMany({ blogId }, { $set: { blogName } });
+  async updateBlogNameField(
+    blogId: string,
+    blogName: string,
+    session?: ClientSession,
+  ): Promise<void> {
+    await postsCollection.updateMany(
+      { blogId },
+      { $set: { blogName } },
+      { session },
+    );
   },
 
-  async deleteByBlogId(blogId: string): Promise<void> {
-    await postsCollection.deleteMany({ blogId });
+  async deleteByBlogId(blogId: string, session?: ClientSession): Promise<void> {
+    await postsCollection.deleteMany({ blogId }, { session });
   },
 };
