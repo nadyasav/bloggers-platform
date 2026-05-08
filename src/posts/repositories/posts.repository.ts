@@ -19,6 +19,7 @@ export const postsRepository = {
       content: dto.content,
       blogId: dto.blogId,
       blogName,
+      createdAt: new Date(),
     };
 
     const result = await postsCollection.insertOne(newPost);
