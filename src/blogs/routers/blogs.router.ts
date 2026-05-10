@@ -8,11 +8,12 @@ import { blogValidation } from '../validation/blog.validation';
 import { validationResultMiddleware } from '../../core/middlewares/validation-result.middleware';
 import { basicAuthMiddleware } from '../../core/middlewares/auth/basic-auth.middleware';
 import { idParamValidation } from '../../core/validation/id-param.validation';
+import { blogQueryValidation } from '../validation/blog-query.validation';
 
 export const blogsRouter = Router();
 
 blogsRouter
-  .get('', getBlogsHandler)
+  .get('', blogQueryValidation, validationResultMiddleware, getBlogsHandler)
 
   .get(
     '/:id',

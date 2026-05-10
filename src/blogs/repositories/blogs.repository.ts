@@ -4,10 +4,26 @@ import { NotFoundError } from '../../core/errors/not-found.error';
 import { BLOG_NOT_FOUND } from '../blog.constants';
 import { ClientSession, ObjectId, WithId } from 'mongodb';
 import { blogsCollection } from '../../db/db';
+import { BlogQueryDto } from '../dto/blog-query.dto';
 
 export const blogsRepository = {
-  async getAll(): Promise<WithId<BlogDb>[]> {
-    return blogsCollection.find().toArray();
+  async getAll(
+    query: BlogQueryDto,
+  ): Promise<{ blogs: WithId<BlogDb>[]; totalCount: number }> {
+    const nameSearchFilter = query.searchNameTerm
+      ? { name: { $regex: query.searchNameTerm, $options: 'i' } }
+      : {};
+    const skipCount = (query.pageNumber - 1) * query.pageSize;
+
+    const totalCount = await blogsCollection.countDocuments(nameSearchFilter);
+    const blogs = await blogsCollection
+      .find(nameSearchFilter)
+      .sort({ [query.sortBy]: query.sortDirection })
+      .skip(skipCount)
+      .limit(query.pageSize)
+      .toArray();
+
+    return { blogs, totalCount };
   },
   async getById(id: string): Promise<WithId<BlogDb> | null> {
     return blogsCollection.findOne({ _id: new ObjectId(id) });

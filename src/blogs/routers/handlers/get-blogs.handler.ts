@@ -1,8 +1,22 @@
 import { Request, Response } from 'express';
+import { matchedData } from 'express-validator';
 import { blogsRepository } from '../../repositories/blogs.repository';
 import { mapBlogDbToBlog } from '../mappers/blogdb-to-blog.mapper';
+import { mapItemsToPaginated } from '../../../core/mappers/items-to-paginated.mapper';
+import { BlogQueryDto } from '../../dto/blog-query.dto';
 
-export async function getBlogsHandler(_req: Request, res: Response) {
-  const blogs = await blogsRepository.getAll();
-  res.status(200).send(blogs.map(mapBlogDbToBlog));
+export async function getBlogsHandler(req: Request, res: Response) {
+  const query = matchedData<BlogQueryDto>(req, {
+    locations: ['query'],
+    includeOptionals: true,
+  });
+  const { blogs, totalCount } = await blogsRepository.getAll(query);
+
+  const result = mapItemsToPaginated(
+    blogs.map(mapBlogDbToBlog),
+    totalCount,
+    query,
+  );
+
+  res.status(200).send(result);
 }
