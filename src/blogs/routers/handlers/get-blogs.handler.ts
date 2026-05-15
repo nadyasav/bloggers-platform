@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { matchedData } from 'express-validator';
-import { blogsRepository } from '../../repositories/blogs.repository';
+import { blogsService } from '../../application/blogs.service';
 import { mapBlogDbToBlog } from '../mappers/blogdb-to-blog.mapper';
 import { mapItemsToPaginated } from '../../../core/mappers/items-to-paginated.mapper';
 import { BlogQueryDto } from '../../dto/blog-query.dto';
@@ -10,7 +10,7 @@ export async function getBlogsHandler(req: Request, res: Response) {
     locations: ['query'],
     includeOptionals: true,
   });
-  const { blogs, totalCount } = await blogsRepository.getAll(query);
+  const { blogs, totalCount } = await blogsService.getAll(query);
 
   const result = mapItemsToPaginated(
     blogs.map(mapBlogDbToBlog),
