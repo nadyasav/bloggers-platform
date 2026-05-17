@@ -4,9 +4,8 @@ import { blogsRepository } from '../repositories/blogs.repository';
 import { BlogDb } from '../types/blog.types';
 import { WithId } from 'mongodb';
 import { postsRepository } from '../../posts/repositories/posts.repository';
-import { NotFoundError } from '../../core/errors/not-found.error';
 import { client } from '../../db/db';
-import { BLOG_NOT_FOUND } from '../blog.constants';
+import { BlogNotFoundError } from '../errors/blog-not-found.error';
 
 export const blogsService = {
   async getAll(
@@ -27,7 +26,7 @@ export const blogsService = {
     const blog = await blogsRepository.getById(id);
 
     if (!blog) {
-      throw new NotFoundError(BLOG_NOT_FOUND);
+      throw new BlogNotFoundError();
     }
 
     const session = client.startSession();

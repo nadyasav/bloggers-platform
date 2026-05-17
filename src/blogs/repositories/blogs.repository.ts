@@ -1,7 +1,6 @@
 import { BlogInputDto } from '../dto/blog-input.dto';
 import { BlogDb } from '../types/blog.types';
-import { NotFoundError } from '../../core/errors/not-found.error';
-import { BLOG_NOT_FOUND } from '../blog.constants';
+import { BlogNotFoundError } from '../errors/blog-not-found.error';
 import { ClientSession, ObjectId, WithId } from 'mongodb';
 import { blogsCollection } from '../../db/db';
 import { BlogQueryDto } from '../dto/blog-query.dto';
@@ -58,7 +57,7 @@ export const blogsRepository = {
     );
 
     if (result.matchedCount === 0) {
-      throw new NotFoundError(BLOG_NOT_FOUND);
+      throw new BlogNotFoundError();
     }
   },
   async delete(id: string, session?: ClientSession): Promise<void> {
@@ -68,7 +67,7 @@ export const blogsRepository = {
     );
 
     if (result.deletedCount === 0) {
-      throw new NotFoundError(BLOG_NOT_FOUND);
+      throw new BlogNotFoundError();
     }
   },
 };

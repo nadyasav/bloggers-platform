@@ -8,11 +8,12 @@ import { basicAuthMiddleware } from '../../core/middlewares/auth/basic-auth.midd
 import { postValidation } from '../validation/post.validation';
 import { validationResultMiddleware } from '../../core/middlewares/validation-result.middleware';
 import { idParamValidation } from '../../core/validation/id-param.validation';
+import { postQueryValidation } from '../validation/post-query.validation';
 
 export const postsRouter = Router();
 
 postsRouter
-  .get('', getPostsHandler)
+  .get('', postQueryValidation, validationResultMiddleware, getPostsHandler)
 
   .get(
     '/:id',

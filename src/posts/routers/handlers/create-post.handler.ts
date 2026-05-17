@@ -1,21 +1,23 @@
 import { Request, Response } from 'express';
 import { PostInputDto } from '../../dto/post-input.dto';
-import { postsRepository } from '../../repositories/posts.repository';
-import { blogsRepository } from '../../../blogs/repositories/blogs.repository';
 import { mapPostDbToPost } from '../mappers/postdb-to-post.mapper';
+import { postsService } from '../../application/posts.service';
+import { BlogIdNotFoundError } from '../../errors/blog-id-not-found.error';
 
 export async function createPostHandler(
   req: Request<{}, {}, PostInputDto>,
   res: Response,
 ) {
-  const blog = await blogsRepository.getById(req.body.blogId);
+  try {
+    const newPost = await postsService.create(req.body);
+    res.status(201).send(mapPostDbToPost(newPost));
+  } catch (error) {
+    if (error instanceof BlogIdNotFoundError) {
+      return res.status(error.statusCode).send({
+        errorsMessages: [{ field: 'blogId', message: error.message }],
+      });
+    }
 
-  if (!blog) {
-    return res.status(400).send({
-      errorsMessages: [{ field: 'blogId', message: 'Blog not found' }],
-    });
+    throw error;
   }
-
-  const newPost = await postsRepository.create(req.body, blog.name);
-  res.status(201).send(mapPostDbToPost(newPost));
 }

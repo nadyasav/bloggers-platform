@@ -1,13 +1,25 @@
 import { PostInputDto } from '../dto/post-input.dto';
+import { PostQueryDto } from '../dto/post-query.dto';
 import { PostDb } from '../types/post.types';
-import { NotFoundError } from '../../core/errors/not-found.error';
-import { POST_NOT_FOUND } from '../post.constants';
 import { ClientSession, ObjectId, WithId } from 'mongodb';
 import { postsCollection } from '../../db/db';
+import { PostNotFoundError } from '../errors/post-not-found.error';
 
 export const postsRepository = {
-  async getAll(): Promise<WithId<PostDb>[]> {
-    return postsCollection.find().toArray();
+  async getAll(
+    query: PostQueryDto,
+  ): Promise<{ posts: WithId<PostDb>[]; totalCount: number }> {
+    const skipCount = (query.pageNumber - 1) * query.pageSize;
+
+    const totalCount = await postsCollection.countDocuments();
+    const posts = await postsCollection
+      .find()
+      .sort({ [query.sortBy]: query.sortDirection })
+      .skip(skipCount)
+      .limit(query.pageSize)
+      .toArray();
+
+    return { posts, totalCount };
   },
   async getById(id: string): Promise<WithId<PostDb> | null> {
     return postsCollection.findOne({ _id: new ObjectId(id) });
@@ -40,14 +52,14 @@ export const postsRepository = {
     );
 
     if (result.matchedCount === 0) {
-      throw new NotFoundError(POST_NOT_FOUND);
+      throw new PostNotFoundError();
     }
   },
   async delete(id: string): Promise<void> {
     const result = await postsCollection.deleteOne({ _id: new ObjectId(id) });
 
     if (result.deletedCount === 0) {
-      throw new NotFoundError(POST_NOT_FOUND);
+      throw new PostNotFoundError();
     }
   },
   async updateBlogNameField(
