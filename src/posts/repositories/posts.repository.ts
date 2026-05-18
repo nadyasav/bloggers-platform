@@ -8,12 +8,14 @@ import { PostNotFoundError } from '../errors/post-not-found.error';
 export const postsRepository = {
   async getAll(
     query: PostQueryDto,
+    blogId?: string,
   ): Promise<{ posts: WithId<PostDb>[]; totalCount: number }> {
     const skipCount = (query.pageNumber - 1) * query.pageSize;
+    const blogIdFilter = blogId ? { blogId } : {};
 
-    const totalCount = await postsCollection.countDocuments();
+    const totalCount = await postsCollection.countDocuments(blogIdFilter);
     const posts = await postsCollection
-      .find()
+      .find(blogIdFilter)
       .sort({ [query.sortBy]: query.sortDirection })
       .skip(skipCount)
       .limit(query.pageSize)

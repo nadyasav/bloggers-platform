@@ -5,12 +5,23 @@ import { WithId } from 'mongodb';
 import { PostInputDto } from '../dto/post-input.dto';
 import { blogsRepository } from '../../blogs/repositories/blogs.repository';
 import { BlogIdNotFoundError } from '../errors/blog-id-not-found.error';
+import { BlogPostInputDto } from '../dto/blog-post-input.dto';
+import { BlogNotFoundError } from '../../blogs/errors/blog-not-found.error';
 
 export const postsService = {
   async getAll(
     query: PostQueryDto,
+    blogId?: string,
   ): Promise<{ posts: WithId<PostDb>[]; totalCount: number }> {
-    return postsRepository.getAll(query);
+    if (blogId) {
+      const blog = await blogsRepository.getById(blogId);
+
+      if (!blog) {
+        throw new BlogNotFoundError();
+      }
+    }
+
+    return postsRepository.getAll(query, blogId);
   },
 
   async getById(id: string): Promise<WithId<PostDb> | null> {
@@ -25,6 +36,19 @@ export const postsService = {
     }
 
     return postsRepository.create(dto, blog.name);
+  },
+
+  async createByBlogId(
+    blogId: string,
+    dto: BlogPostInputDto,
+  ): Promise<WithId<PostDb>> {
+    const blog = await blogsRepository.getById(blogId);
+
+    if (!blog) {
+      throw new BlogNotFoundError();
+    }
+
+    return postsRepository.create({ ...dto, blogId }, blog.name);
   },
 
   async update(id: string, dto: PostInputDto): Promise<void> {

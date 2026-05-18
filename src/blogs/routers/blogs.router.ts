@@ -9,6 +9,10 @@ import { validationResultMiddleware } from '../../core/middlewares/validation-re
 import { basicAuthMiddleware } from '../../core/middlewares/auth/basic-auth.middleware';
 import { idParamValidation } from '../../core/validation/id-param.validation';
 import { blogQueryValidation } from '../validation/blog-query.validation';
+import { getBlogPostsHandler } from './handlers/get-blog-posts.handler';
+import { postQueryValidation } from '../../posts/validation/post-query.validation';
+import { createBlogPostHandler } from './handlers/create-blog-post.handler';
+import { blogPostValidation } from '../../posts/validation/post.validation';
 
 export const blogsRouter = Router();
 
@@ -22,12 +26,29 @@ blogsRouter
     getBlogByIdHandler,
   )
 
+  .get(
+    '/:id/posts',
+    idParamValidation,
+    postQueryValidation,
+    validationResultMiddleware,
+    getBlogPostsHandler,
+  )
+
   .post(
     '',
     basicAuthMiddleware,
     blogValidation,
     validationResultMiddleware,
     createBlogHandler,
+  )
+
+  .post(
+    '/:id/posts',
+    basicAuthMiddleware,
+    idParamValidation,
+    blogPostValidation,
+    validationResultMiddleware,
+    createBlogPostHandler,
   )
 
   .put(
