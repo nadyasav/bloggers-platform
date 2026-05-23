@@ -5,10 +5,20 @@ import { validationResultMiddleware } from '../../core/middlewares/validation-re
 import { createUserHandler } from './handlers/create-user.handler';
 import { idParamValidation } from '../../core/validation/id-param.validation';
 import { deleteUserHandler } from './handlers/delete-user.handler';
+import { userQueryValidation } from '../validation/user-query.validation';
+import { getUsersHandler } from './handlers/get-users.handler';
 
 export const usersRouter = Router();
 
 usersRouter
+  .get(
+    '',
+    basicAuthMiddleware,
+    userQueryValidation,
+    validationResultMiddleware,
+    getUsersHandler,
+  )
+
   .post(
     '',
     basicAuthMiddleware,
