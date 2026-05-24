@@ -13,6 +13,14 @@ export const usersRepository = {
     return usersCollection.findOne({ email });
   },
 
+  async getByLoginOrEmail(
+    loginOrEmail: string,
+  ): Promise<WithId<UserDb> | null> {
+    return usersCollection.findOne({
+      $or: [{ login: loginOrEmail }, { email: loginOrEmail }],
+    });
+  },
+
   async create(dto: UserInputDto, passwordHash: string): Promise<string> {
     const newUser: UserDb = {
       login: dto.login,
