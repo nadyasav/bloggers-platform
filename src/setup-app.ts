@@ -16,7 +16,10 @@ export const setupApp = (app: Express) => {
   app.use('/posts', postsRouter);
   app.use('/users', usersRouter);
   app.use('/auth', authRouter);
-  app.use('/testing', testingRouter);
+
+  if (process.env.NODE_ENV === 'test') {
+    app.use('/testing', testingRouter);
+  }
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     if (err.type === 'entity.parse.failed') {
