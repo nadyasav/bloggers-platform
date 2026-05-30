@@ -1,7 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-
-const ADMIN_LOGIN = process.env.ADMIN_LOGIN || 'admin';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'qwerty';
+import { config } from '../../config';
 
 export const basicAuthMiddleware = (
   req: Request,
@@ -20,7 +18,7 @@ export const basicAuthMiddleware = (
   );
   const [login, password] = credentials.split(':');
 
-  if (login !== ADMIN_LOGIN || password !== ADMIN_PASSWORD) {
+  if (login !== config.adminLogin || password !== config.adminPassword) {
     return res.status(401).send({ message: 'Invalid credentials' });
   }
 

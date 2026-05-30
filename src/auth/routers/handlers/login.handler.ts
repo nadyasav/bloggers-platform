@@ -16,5 +16,5 @@ export async function loginHandler(
     return res.status(401).send({ message: 'Invalid credentials' });
   }
 
-  res.sendStatus(204);
+  res.status(200).send({ accessToken: result.data });
 }

@@ -2,8 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import { setupApp } from './setup-app';
 import { connectToDb } from './db/db';
-
-const PORT = process.env.PORT || 5001;
+import { config } from './core/config';
 
 const start = async () => {
   const app = express();
@@ -12,8 +11,8 @@ const start = async () => {
   try {
     await connectToDb();
 
-    app.listen(PORT, () => {
-      console.log(`App listening on port ${PORT}`);
+    app.listen(config.port, () => {
+      console.log(`App listening on port ${config.port}`);
     });
   } catch (error) {
     console.error('Failed to start application: ', error);

@@ -2,6 +2,7 @@ import { Collection, Db, MongoClient } from 'mongodb';
 import { BlogDb } from '../blogs/types/blog.types';
 import { PostDb } from '../posts/types/post.types';
 import { UserDb } from '../users/types/user.types';
+import { config } from '../core/config';
 
 const DB_NAME = 'bloggers-platform';
 const BLOGS_COLLECTION_NAME = 'blogs';
@@ -14,7 +15,7 @@ export let postsCollection: Collection<PostDb>;
 export let usersCollection: Collection<UserDb>;
 
 export const connectToDb = async (): Promise<void> => {
-  client = new MongoClient(process.env.MONGODB_URL!);
+  client = new MongoClient(config.mongodbUrl);
   const db: Db = client.db(DB_NAME);
 
   blogsCollection = db.collection<BlogDb>(BLOGS_COLLECTION_NAME);
