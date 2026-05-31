@@ -6,7 +6,7 @@ export enum ResultStatus {
   Forbidden = 'Forbidden',
 }
 
-type ExtensionType = {
+export type ExtensionType = {
   field: string | null;
   message: string;
 };

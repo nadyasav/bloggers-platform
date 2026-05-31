@@ -9,6 +9,9 @@ import { postValidation } from '../validation/post.validation';
 import { validationResultMiddleware } from '../../core/middlewares/validation-result.middleware';
 import { idParamValidation } from '../../core/validation/id-param.validation';
 import { postQueryValidation } from '../validation/post-query.validation';
+import { createPostCommentHandler } from './handlers/create-post-comment.handler';
+import { bearerAuthMiddleware } from '../../core/middlewares/auth/bearer-auth.middleware';
+import { commentValidation } from '../../comments/validation/comment.validation';
 
 export const postsRouter = Router();
 
@@ -45,4 +48,13 @@ postsRouter
     idParamValidation,
     validationResultMiddleware,
     deletePostHandler,
+  )
+
+  .post(
+    '/:id/comments',
+    bearerAuthMiddleware,
+    idParamValidation,
+    commentValidation,
+    validationResultMiddleware,
+    createPostCommentHandler,
   );

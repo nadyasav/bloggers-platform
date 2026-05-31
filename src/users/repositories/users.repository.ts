@@ -21,6 +21,10 @@ export const usersRepository = {
     });
   },
 
+  async getById(id: string): Promise<WithId<UserDb> | null> {
+    return usersCollection.findOne({ _id: new ObjectId(id) });
+  },
+
   async create(dto: UserInputDto, passwordHash: string): Promise<string> {
     const newUser: UserDb = {
       login: dto.login,
