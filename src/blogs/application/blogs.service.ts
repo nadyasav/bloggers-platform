@@ -3,9 +3,9 @@ import { BlogQueryDto } from '../dto/blog-query.dto';
 import { blogsRepository } from '../repositories/blogs.repository';
 import { BlogDb } from '../types/blog.types';
 import { WithId } from 'mongodb';
-import { postsRepository } from '../../posts/repositories/posts.repository';
 import { client } from '../../db/db';
 import { BlogNotFoundError } from '../errors/blog-not-found.error';
+import { postsService } from '../../posts/application/posts.service';
 
 export const blogsService = {
   async getAll(
@@ -36,7 +36,7 @@ export const blogsService = {
         await blogsRepository.update(id, dto, session);
 
         if (blog.name !== dto.name) {
-          await postsRepository.updateBlogNameField(id, dto.name, session);
+          await postsService.updateBlogNameField(id, dto.name, session);
         }
       });
     } finally {
@@ -50,7 +50,7 @@ export const blogsService = {
     try {
       await session.withTransaction(async () => {
         await blogsRepository.delete(id, session);
-        await postsRepository.deleteByBlogId(id, session);
+        await postsService.deleteByBlogId(id, session);
       });
     } finally {
       await session.endSession();

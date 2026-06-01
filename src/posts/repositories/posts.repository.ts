@@ -79,4 +79,16 @@ export const postsRepository = {
   async deleteByBlogId(blogId: string, session?: ClientSession): Promise<void> {
     await postsCollection.deleteMany({ blogId }, { session });
   },
+
+  async getIdsByBlogId(
+    blogId: string,
+    session?: ClientSession,
+  ): Promise<string[]> {
+    const posts = await postsCollection
+      .find({ blogId }, { session, projection: { _id: 1 } })
+      .toArray();
+    const ids = posts.map((post) => post._id.toString());
+
+    return ids;
+  },
 };

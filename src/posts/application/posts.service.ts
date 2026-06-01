@@ -7,6 +7,9 @@ import { blogsRepository } from '../../blogs/repositories/blogs.repository';
 import { BlogIdNotFoundError } from '../errors/blog-id-not-found.error';
 import { BlogPostInputDto } from '../dto/blog-post-input.dto';
 import { BlogNotFoundError } from '../../blogs/errors/blog-not-found.error';
+import { client } from '../../db/db';
+import { ClientSession } from 'mongodb';
+import { commentsService } from '../../comments/application/comments.service';
 
 export const postsService = {
   async getAll(
@@ -61,7 +64,31 @@ export const postsService = {
     await postsRepository.update(id, dto, blog.name);
   },
 
+  async updateBlogNameField(
+    blogId: string,
+    blogName: string,
+    session?: ClientSession,
+  ): Promise<void> {
+    await postsRepository.updateBlogNameField(blogId, blogName, session);
+  },
+
+  async deleteByBlogId(blogId: string, session?: ClientSession): Promise<void> {
+    const postIds = await postsRepository.getIdsByBlogId(blogId, session);
+
+    await commentsService.deleteByPostIds(postIds, session);
+    await postsRepository.deleteByBlogId(blogId, session);
+  },
+
   async delete(id: string): Promise<void> {
-    await postsRepository.delete(id);
+    const session = client.startSession();
+
+    try {
+      await session.withTransaction(async () => {
+        await postsRepository.delete(id);
+        await commentsService.deleteByPostId(id, session);
+      });
+    } finally {
+      await session.endSession();
+    }
   },
 };
