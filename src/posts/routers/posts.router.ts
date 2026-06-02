@@ -12,6 +12,8 @@ import { postQueryValidation } from '../validation/post-query.validation';
 import { createPostCommentHandler } from './handlers/create-post-comment.handler';
 import { bearerAuthMiddleware } from '../../core/middlewares/auth/bearer-auth.middleware';
 import { commentValidation } from '../../comments/validation/comment.validation';
+import { commentQueryValidation } from '../../comments/validation/comment-query.validation';
+import { getPostCommentsHandler } from './handlers/get-post-comments.handler';
 
 export const postsRouter = Router();
 
@@ -48,6 +50,14 @@ postsRouter
     idParamValidation,
     validationResultMiddleware,
     deletePostHandler,
+  )
+
+  .get(
+    '/:id/comments',
+    idParamValidation,
+    commentQueryValidation,
+    validationResultMiddleware,
+    getPostCommentsHandler,
   )
 
   .post(

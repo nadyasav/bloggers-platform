@@ -11,7 +11,7 @@ export async function createPostCommentHandler(
   res: Response,
 ) {
   const result = await commentsService.create(
-    req.body.content,
+    req.body,
     req.params.id,
     req.userId as string,
   );
