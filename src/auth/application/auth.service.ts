@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { RegistrationInputDto } from '../dto/registration-input.dto';
 import { nodemailerService } from '../../core/services/nodemailer.service';
 import { emailTemplate } from '../../core/utils/email-template.util';
+import { RegistrationConfirmationInputDto } from '../dto/registration-confirmation-input.dto';
 
 export const authService = {
   async login(
@@ -58,6 +59,43 @@ export const authService = {
       .catch((error) => {
         console.error('Failed to send confirmation email: ', error);
       });
+
+    return { status: ResultStatus.Success, extensions: [], data: null };
+  },
+
+  async confirmRegistration(
+    dto: RegistrationConfirmationInputDto,
+  ): Promise<Result<null>> {
+    const CODE_KEY = 'code';
+    const user = await usersRepository.getByConfirmationCode(dto.code);
+
+    if (!user) {
+      return {
+        status: ResultStatus.BadRequest,
+        extensions: [{ field: CODE_KEY, message: `${CODE_KEY} is incorrect` }],
+        data: null,
+      };
+    }
+
+    if (user.emailConfirmation.isConfirmed) {
+      return {
+        status: ResultStatus.BadRequest,
+        extensions: [
+          { field: CODE_KEY, message: `${CODE_KEY} has already been applied` },
+        ],
+        data: null,
+      };
+    }
+
+    if (user.emailConfirmation.expiresAt < new Date()) {
+      return {
+        status: ResultStatus.BadRequest,
+        extensions: [{ field: CODE_KEY, message: `${CODE_KEY} has expired` }],
+        data: null,
+      };
+    }
+
+    await usersRepository.confirmEmail(user._id.toString());
 
     return { status: ResultStatus.Success, extensions: [], data: null };
   },
