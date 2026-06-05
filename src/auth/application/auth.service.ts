@@ -4,6 +4,11 @@ import { usersRepository } from '../../users/repositories/users.repository';
 import { jwtService } from '../../core/services/jwt.service';
 import { config } from '../../core/config';
 import { SignOptions } from 'jsonwebtoken';
+import { usersService } from '../../users/application/users.service';
+import { v4 as uuidv4 } from 'uuid';
+import { RegistrationInputDto } from '../dto/registration-input.dto';
+import { nodemailerService } from '../../core/services/nodemailer.service';
+import { emailTemplate } from '../../core/utils/email-template.util';
 
 export const authService = {
   async login(
@@ -32,5 +37,28 @@ export const authService = {
     );
 
     return { status: ResultStatus.Success, extensions: [], data: accessToken };
+  },
+
+  async register(dto: RegistrationInputDto): Promise<Result<string | null>> {
+    const expiresInMs = config.emailConfirmExpiresInMins * 60 * 1000;
+    const emailConfirmation = {
+      code: uuidv4(),
+      expiresAt: new Date(Date.now() + expiresInMs),
+      isConfirmed: false,
+    };
+
+    const result = await usersService.create(dto, emailConfirmation);
+
+    if (result.status !== ResultStatus.Success) {
+      return result;
+    }
+
+    nodemailerService
+      .sendEmail(dto.email, emailTemplate.registration(emailConfirmation.code))
+      .catch((error) => {
+        console.error('Failed to send confirmation email: ', error);
+      });
+
+    return { status: ResultStatus.Success, extensions: [], data: null };
   },
 };

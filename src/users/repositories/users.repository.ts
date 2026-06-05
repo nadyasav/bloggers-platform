@@ -1,7 +1,6 @@
 import { ObjectId, WithId } from 'mongodb';
 import { usersCollection } from '../../db/db';
 import { UserDb } from '../types/user.types';
-import { UserInputDto } from '../dto/user-input.dto';
 import { UserNotFoundError } from '../errors/user-not-found.error';
 
 export const usersRepository = {
@@ -25,15 +24,8 @@ export const usersRepository = {
     return usersCollection.findOne({ _id: new ObjectId(id) });
   },
 
-  async create(dto: UserInputDto, passwordHash: string): Promise<string> {
-    const newUser: UserDb = {
-      login: dto.login,
-      email: dto.email,
-      passwordHash,
-      createdAt: new Date(),
-    };
-
-    const result = await usersCollection.insertOne(newUser);
+  async create(user: UserDb): Promise<string> {
+    const result = await usersCollection.insertOne(user);
     return result.insertedId.toString();
   },
 

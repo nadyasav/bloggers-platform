@@ -3,9 +3,13 @@ import { Result, ResultStatus } from '../../core/types/result.types';
 import { UserInputDto } from '../dto/user-input.dto';
 import { UserNotFoundError } from '../errors/user-not-found.error';
 import { usersRepository } from '../repositories/users.repository';
+import { EmailConfirmation, UserDb } from '../types/user.types';
 
 export const usersService = {
-  async create(dto: UserInputDto): Promise<Result<string | null>> {
+  async create(
+    dto: UserInputDto,
+    emailConfirmation?: EmailConfirmation,
+  ): Promise<Result<string | null>> {
     const extensions = [];
 
     const existingLogin = await usersRepository.getByLogin(dto.login);
@@ -23,7 +27,19 @@ export const usersService = {
     }
 
     const passwordHash = await bcryptService.generateHash(dto.password);
-    const id = await usersRepository.create(dto, passwordHash);
+    const user: UserDb = {
+      login: dto.login,
+      email: dto.email,
+      passwordHash,
+      emailConfirmation: emailConfirmation ?? {
+        code: '',
+        expiresAt: new Date(),
+        isConfirmed: true,
+      },
+      createdAt: new Date(),
+    };
+
+    const id = await usersRepository.create(user);
     return { status: ResultStatus.Success, extensions: [], data: id };
   },
 

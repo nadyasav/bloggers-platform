@@ -5,6 +5,13 @@ export type User = {
   createdAt: Date;
 };
 
+export type EmailConfirmation = {
+  code: string;
+  expiresAt: Date;
+  isConfirmed: boolean;
+};
+
 export type UserDb = Omit<User, 'id'> & {
   passwordHash: string;
+  emailConfirmation: EmailConfirmation;
 };

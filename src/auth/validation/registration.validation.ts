@@ -4,7 +4,7 @@ import {
   emailValidation,
 } from '../../core/validation/user-fields.validation';
 
-export const userValidation = [
+export const registrationValidation = [
   loginValidation,
   passwordValidation,
   emailValidation,

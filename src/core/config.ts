@@ -1,6 +1,7 @@
 const defaults = {
   PORT: '5001',
   ACCESS_TOKEN_EXPIRES_IN: '1h',
+  EMAIL_CONFIRM_EXPIRES_IN_MINS: '30',
 };
 
 const getConfig = () => {
@@ -24,6 +25,17 @@ const getConfig = () => {
       process.env.ACCESS_TOKEN_EXPIRES_IN || defaults.ACCESS_TOKEN_EXPIRES_IN,
     adminLogin: getEnvVar('ADMIN_LOGIN'),
     adminPassword: getEnvVar('ADMIN_PASSWORD'),
+    email: {
+      address: getEnvVar('EMAIL_ADDRESS'),
+      password: getEnvVar('EMAIL_PASSWORD'),
+      host: getEnvVar('EMAIL_HOST'),
+      port: getEnvVar('EMAIL_PORT'),
+    },
+    appUrl: getEnvVar('APP_URL'),
+    emailConfirmExpiresInMins: Number(
+      process.env.EMAIL_CONFIRM_EXPIRES_IN_MINS ||
+        defaults.EMAIL_CONFIRM_EXPIRES_IN_MINS,
+    ),
   };
 
   if (missingEnvVars.length > 0) {
