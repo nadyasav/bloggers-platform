@@ -10,6 +10,8 @@ import { RegistrationInputDto } from '../dto/registration-input.dto';
 import { nodemailerService } from '../../core/services/nodemailer.service';
 import { emailTemplate } from '../../core/utils/email-template.util';
 import { RegistrationConfirmationInputDto } from '../dto/registration-confirmation-input.dto';
+import { EmailResendingInputDto } from '../dto/email-resending-input.dto';
+import { authRepository } from '../repositories/auth.repository';
 
 export const authService = {
   async login(
@@ -28,6 +30,10 @@ export const authService = {
     );
 
     if (!isPasswordValid) {
+      return { status: ResultStatus.Unauthorized, extensions: [], data: null };
+    }
+
+    if (!user.emailConfirmation.isConfirmed) {
       return { status: ResultStatus.Unauthorized, extensions: [], data: null };
     }
 
@@ -57,7 +63,10 @@ export const authService = {
     nodemailerService
       .sendEmail(dto.email, emailTemplate.registration(emailConfirmation.code))
       .catch((error) => {
-        console.error('Failed to send confirmation email: ', error);
+        console.error(
+          'Failed to send registration confirmation email: ',
+          error,
+        );
       });
 
     return { status: ResultStatus.Success, extensions: [], data: null };
@@ -67,7 +76,7 @@ export const authService = {
     dto: RegistrationConfirmationInputDto,
   ): Promise<Result<null>> {
     const CODE_KEY = 'code';
-    const user = await usersRepository.getByConfirmationCode(dto.code);
+    const user = await authRepository.getByConfirmationCode(dto.code);
 
     if (!user) {
       return {
@@ -95,7 +104,47 @@ export const authService = {
       };
     }
 
-    await usersRepository.confirmEmail(user._id.toString());
+    await authRepository.confirmEmail(user._id.toString());
+
+    return { status: ResultStatus.Success, extensions: [], data: null };
+  },
+
+  async resendRegistrationEmail(
+    dto: EmailResendingInputDto,
+  ): Promise<Result<null>> {
+    const EMAIL_KEY = 'email';
+    const user = await usersRepository.getByEmail(dto.email);
+
+    if (!user || user.emailConfirmation.isConfirmed) {
+      return {
+        status: ResultStatus.BadRequest,
+        extensions: [
+          {
+            field: EMAIL_KEY,
+            message: `${EMAIL_KEY} is incorrect or already confirmed`,
+          },
+        ],
+        data: null,
+      };
+    }
+
+    const expiresInMs = config.emailConfirmExpiresInMins * 60 * 1000;
+    const newCode = uuidv4();
+
+    await authRepository.updateEmailConfirmationCode(
+      user._id.toString(),
+      newCode,
+      new Date(Date.now() + expiresInMs),
+    );
+
+    nodemailerService
+      .sendEmail(dto.email, emailTemplate.registration(newCode))
+      .catch((error) => {
+        console.error(
+          'Failed to resend registration confirmation email: ',
+          error,
+        );
+      });
 
     return { status: ResultStatus.Success, extensions: [], data: null };
   },

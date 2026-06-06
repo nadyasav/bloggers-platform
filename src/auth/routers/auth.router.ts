@@ -8,6 +8,8 @@ import { registrationValidation } from '../validation/registration.validation';
 import { registrationHandler } from './handlers/registration.handler';
 import { registrationConfirmationHandler } from './handlers/registration-confirmation.handler';
 import { registrationConfirmationValidation } from '../validation/registration-confirmation.validation';
+import { emailResendingValidation } from '../validation/email-resending.validation';
+import { emailResendingHandler } from './handlers/email-resending.handler';
 
 export const authRouter = Router();
 
@@ -24,5 +26,11 @@ authRouter
     registrationConfirmationValidation,
     validationResultMiddleware,
     registrationConfirmationHandler,
+  )
+  .post(
+    '/registration-email-resending',
+    emailResendingValidation,
+    validationResultMiddleware,
+    emailResendingHandler,
   )
   .get('/me', bearerAuthMiddleware, meHandler);

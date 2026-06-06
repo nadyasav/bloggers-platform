@@ -29,17 +29,6 @@ export const usersRepository = {
     return result.insertedId.toString();
   },
 
-  async getByConfirmationCode(code: string): Promise<WithId<UserDb> | null> {
-    return usersCollection.findOne({ 'emailConfirmation.code': code });
-  },
-
-  async confirmEmail(id: string): Promise<void> {
-    await usersCollection.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: { 'emailConfirmation.isConfirmed': true } },
-    );
-  },
-
   async delete(id: string): Promise<void> {
     const result = await usersCollection.deleteOne({ _id: new ObjectId(id) });
 
