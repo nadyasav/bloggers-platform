@@ -1,20 +1,12 @@
 import { Request, Response } from 'express';
-import { LoginInputDto } from '../../dto/login-input.dto';
 import { authService } from '../../application/auth.service';
 import { ResultStatus } from '../../../core/types/result.types';
 import { REFRESH_TOKEN_COOKIE } from '../../auth.constants';
 
-export async function loginHandler(
-  req: Request<{}, {}, LoginInputDto>,
-  res: Response,
-) {
-  const result = await authService.login(req.body);
+export async function refreshTokenHandler(req: Request, res: Response) {
+  const result = await authService.refreshToken(req.refreshToken!);
 
   if (result.status !== ResultStatus.Success) {
-    if (result.status === ResultStatus.Unauthorized) {
-      return res.status(401).send({ message: 'Invalid credentials' });
-    }
-
     throw new Error();
   }
 

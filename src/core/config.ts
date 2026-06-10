@@ -1,6 +1,7 @@
 const defaults = {
   PORT: '5001',
-  ACCESS_TOKEN_EXPIRES_IN: '1h',
+  ACCESS_TOKEN_EXPIRES_IN: '15m',
+  REFRESH_TOKEN_EXPIRES_IN: '7d',
   EMAIL_CONFIRM_EXPIRES_IN_MINS: '30',
 };
 
@@ -23,6 +24,9 @@ const getConfig = () => {
     accessTokenSecret: getEnvVar('ACCESS_TOKEN_SECRET'),
     accessTokenExpiresIn:
       process.env.ACCESS_TOKEN_EXPIRES_IN || defaults.ACCESS_TOKEN_EXPIRES_IN,
+    refreshTokenSecret: getEnvVar('REFRESH_TOKEN_SECRET'),
+    refreshTokenExpiresIn:
+      process.env.REFRESH_TOKEN_EXPIRES_IN || defaults.REFRESH_TOKEN_EXPIRES_IN,
     adminLogin: getEnvVar('ADMIN_LOGIN'),
     adminPassword: getEnvVar('ADMIN_PASSWORD'),
     email: {

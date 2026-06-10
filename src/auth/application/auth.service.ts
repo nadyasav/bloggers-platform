@@ -12,20 +12,22 @@ import { emailTemplate } from '../../core/utils/email-template.util';
 import { RegistrationConfirmationInputDto } from '../dto/registration-confirmation-input.dto';
 import { EmailResendingInputDto } from '../dto/email-resending-input.dto';
 import { authRepository } from '../repositories/auth.repository';
+import { TokenWithPayload } from '../types/auth.types';
+import { LoginInputDto } from '../dto/login-input.dto';
+import { invalidTokensRepository } from '../repositories/invalid-tokens.repository';
 
 export const authService = {
   async login(
-    loginOrEmail: string,
-    password: string,
-  ): Promise<Result<string | null>> {
-    const user = await usersRepository.getByLoginOrEmail(loginOrEmail);
+    dto: LoginInputDto,
+  ): Promise<Result<{ accessToken: string; refreshToken: string }>> {
+    const user = await usersRepository.getByLoginOrEmail(dto.loginOrEmail);
 
     if (!user) {
       return { status: ResultStatus.Unauthorized, extensions: [], data: null };
     }
 
     const isPasswordValid = await bcryptService.compareHash(
-      password,
+      dto.password,
       user.passwordHash,
     );
 
@@ -37,16 +39,26 @@ export const authService = {
       return { status: ResultStatus.Unauthorized, extensions: [], data: null };
     }
 
+    const userId = user._id.toString();
     const accessToken = jwtService.createToken(
-      user._id.toString(),
+      userId,
       config.accessTokenSecret,
       config.accessTokenExpiresIn as SignOptions['expiresIn'],
     );
+    const refreshToken = jwtService.createToken(
+      userId,
+      config.refreshTokenSecret,
+      config.refreshTokenExpiresIn as SignOptions['expiresIn'],
+    );
 
-    return { status: ResultStatus.Success, extensions: [], data: accessToken };
+    return {
+      status: ResultStatus.Success,
+      extensions: [],
+      data: { accessToken, refreshToken },
+    };
   },
 
-  async register(dto: RegistrationInputDto): Promise<Result<string | null>> {
+  async register(dto: RegistrationInputDto): Promise<Result<null>> {
     const expiresInMs = config.emailConfirmExpiresInMins * 60 * 1000;
     const emailConfirmation = {
       code: uuidv4(),
@@ -145,6 +157,70 @@ export const authService = {
           error,
         );
       });
+
+    return { status: ResultStatus.Success, extensions: [], data: null };
+  },
+
+  async verifyRefreshToken(token: string): Promise<Result<TokenWithPayload>> {
+    const tokenPayload = jwtService.verifyToken(
+      token,
+      config.refreshTokenSecret,
+    );
+
+    if (!tokenPayload) {
+      return { status: ResultStatus.Unauthorized, extensions: [], data: null };
+    }
+
+    const invalidToken = await invalidTokensRepository.findByToken(token);
+
+    if (invalidToken) {
+      return { status: ResultStatus.Unauthorized, extensions: [], data: null };
+    }
+
+    const tokenWithPayload = {
+      token,
+      userId: tokenPayload.userId,
+      expiresAt: new Date(tokenPayload.exp * 1000),
+    };
+
+    return {
+      status: ResultStatus.Success,
+      extensions: [],
+      data: tokenWithPayload,
+    };
+  },
+
+  async refreshToken(
+    refreshToken: TokenWithPayload,
+  ): Promise<Result<{ accessToken: string; refreshToken: string }>> {
+    await invalidTokensRepository.addToken(
+      refreshToken.token,
+      refreshToken.expiresAt,
+    );
+
+    const accessToken = jwtService.createToken(
+      refreshToken.userId,
+      config.accessTokenSecret,
+      config.accessTokenExpiresIn as SignOptions['expiresIn'],
+    );
+    const newRefreshToken = jwtService.createToken(
+      refreshToken.userId,
+      config.refreshTokenSecret,
+      config.refreshTokenExpiresIn as SignOptions['expiresIn'],
+    );
+
+    return {
+      status: ResultStatus.Success,
+      extensions: [],
+      data: { accessToken, refreshToken: newRefreshToken },
+    };
+  },
+
+  async logout(refreshToken: TokenWithPayload): Promise<Result<null>> {
+    await invalidTokensRepository.addToken(
+      refreshToken.token,
+      refreshToken.expiresAt,
+    );
 
     return { status: ResultStatus.Success, extensions: [], data: null };
   },

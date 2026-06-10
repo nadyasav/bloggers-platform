@@ -1,4 +1,8 @@
-import { ExtensionType, Result, ResultStatus } from '../types/result.types';
+import {
+  ErrorResult,
+  ExtensionType,
+  ResultStatus,
+} from '../types/result.types';
 
 type HttpError = {
   code: number;
@@ -24,8 +28,8 @@ type ErrorResponseBody =
   | { errorsMessages: ExtensionType[] }
   | { message: string };
 
-export const resultToErrorResponse = <T>(
-  result: Result<T>,
+export const resultToErrorResponse = (
+  result: ErrorResult,
 ): { code: number; body: ErrorResponseBody } => {
   const error = resultStatusToHttpError(result.status);
   const body =

@@ -10,6 +10,9 @@ import { registrationConfirmationHandler } from './handlers/registration-confirm
 import { registrationConfirmationValidation } from '../validation/registration-confirmation.validation';
 import { emailResendingValidation } from '../validation/email-resending.validation';
 import { emailResendingHandler } from './handlers/email-resending.handler';
+import { refreshTokenHandler } from './handlers/refresh-token.handler';
+import { logoutHandler } from './handlers/logout.handler';
+import { refreshTokenAuthMiddleware } from '../middlewares/refresh-token-auth.middleware';
 
 export const authRouter = Router();
 
@@ -33,4 +36,6 @@ authRouter
     validationResultMiddleware,
     emailResendingHandler,
   )
+  .post('/refresh-token', refreshTokenAuthMiddleware, refreshTokenHandler)
+  .post('/logout', refreshTokenAuthMiddleware, logoutHandler)
   .get('/me', bearerAuthMiddleware, meHandler);

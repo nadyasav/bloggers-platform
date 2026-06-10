@@ -11,10 +11,14 @@ export const jwtService = {
     return jwt.sign({ userId }, secret, { expiresIn, algorithm: ALGORITHM });
   },
 
-  verifyToken(token: string, secret: string): { userId: string } | null {
+  verifyToken(
+    token: string,
+    secret: string,
+  ): { userId: string; exp: number } | null {
     try {
       return jwt.verify(token, secret, { algorithms: [ALGORITHM] }) as {
         userId: string;
+        exp: number;
       };
     } catch {
       return null;
