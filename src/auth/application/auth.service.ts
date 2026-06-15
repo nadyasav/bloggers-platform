@@ -5,7 +5,7 @@ import { jwtService } from '../../core/services/jwt.service';
 import { config } from '../../core/config';
 import { SignOptions } from 'jsonwebtoken';
 import { usersService } from '../../users/application/users.service';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import { RegistrationInputDto } from '../dto/registration-input.dto';
 import { nodemailerService } from '../../core/services/nodemailer.service';
 import { emailTemplate } from '../../core/utils/email-template.util';
@@ -61,7 +61,7 @@ export const authService = {
   async register(dto: RegistrationInputDto): Promise<Result<null>> {
     const expiresInMs = config.emailConfirmExpiresInMins * 60 * 1000;
     const emailConfirmation = {
-      code: uuidv4(),
+      code: randomUUID(),
       expiresAt: new Date(Date.now() + expiresInMs),
       isConfirmed: false,
     };
@@ -141,7 +141,7 @@ export const authService = {
     }
 
     const expiresInMs = config.emailConfirmExpiresInMins * 60 * 1000;
-    const newCode = uuidv4();
+    const newCode = randomUUID();
 
     await authRepository.updateEmailConfirmationCode(
       user._id.toString(),
