@@ -1,0 +1,59 @@
+import { BlogInputDto } from '../dto/blog-input.dto';
+import { BlogQueryDto } from '../dto/blog-query.dto';
+import { blogsRepository } from '../repositories/blogs.repository';
+import { BlogDb } from '../types/blog.types';
+import { WithId } from 'mongodb';
+import { client } from '../../db/db';
+import { BlogNotFoundError } from '../errors/blog-not-found.error';
+import { postsService } from '../../posts/application/posts.service';
+
+export const blogsService = {
+  async getAll(
+    query: BlogQueryDto,
+  ): Promise<{ blogs: WithId<BlogDb>[]; totalCount: number }> {
+    return blogsRepository.getAll(query);
+  },
+
+  async getById(id: string): Promise<WithId<BlogDb> | null> {
+    return blogsRepository.getById(id);
+  },
+
+  async create(dto: BlogInputDto): Promise<WithId<BlogDb>> {
+    return blogsRepository.create(dto);
+  },
+
+  async update(id: string, dto: BlogInputDto): Promise<void> {
+    const blog = await blogsRepository.getById(id);
+
+    if (!blog) {
+      throw new BlogNotFoundError();
+    }
+
+    const session = client.startSession();
+
+    try {
+      await session.withTransaction(async () => {
+        await blogsRepository.update(id, dto, session);
+
+        if (blog.name !== dto.name) {
+          await postsService.updateBlogNameField(id, dto.name, session);
+        }
+      });
+    } finally {
+      await session.endSession();
+    }
+  },
+
+  async delete(id: string): Promise<void> {
+    const session = client.startSession();
+
+    try {
+      await session.withTransaction(async () => {
+        await blogsRepository.delete(id, session);
+        await postsService.deleteByBlogId(id, session);
+      });
+    } finally {
+      await session.endSession();
+    }
+  },
+};
