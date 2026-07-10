@@ -20,6 +20,6 @@ export const refreshTokenAuthMiddleware = async (
     return res.sendStatus(401);
   }
 
-  req.refreshToken = result.data;
+  req.refreshTokenPayload = result.data;
   next();
 };
