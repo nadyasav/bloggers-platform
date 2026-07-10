@@ -14,6 +14,12 @@ export const securityRepository = {
     return sessionsCollection.findOne({ deviceId, issuedAt });
   },
 
+  async getByDeviceId(
+    deviceId: string,
+  ): Promise<WithId<DeviceSessionDb> | null> {
+    return sessionsCollection.findOne({ deviceId });
+  },
+
   async updateSession(
     deviceId: string,
     issuedAt: Date,
@@ -27,5 +33,15 @@ export const securityRepository = {
 
   async deleteByDeviceId(deviceId: string): Promise<void> {
     await sessionsCollection.deleteOne({ deviceId });
+  },
+
+  async deleteOtherSessions(
+    userId: string,
+    currentDeviceId: string,
+  ): Promise<void> {
+    await sessionsCollection.deleteMany({
+      userId,
+      deviceId: { $ne: currentDeviceId },
+    });
   },
 };
