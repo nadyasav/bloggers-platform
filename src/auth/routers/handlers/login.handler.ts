@@ -4,9 +4,9 @@ import { authService } from '../../application/auth.service';
 import { ResultStatus } from '../../../core/types/result.types';
 import {
   DEFAULT_DEVICE_NAME,
-  DEFAULT_IP,
   REFRESH_TOKEN_COOKIE,
 } from '../../auth.constants';
+import { DEFAULT_IP } from '../../../core/core.constants';
 
 export async function loginHandler(
   req: Request<{}, {}, LoginInputDto>,
