@@ -23,8 +23,10 @@ export let commentsCollection: Collection<CommentDb>;
 export let sessionsCollection: Collection<DeviceSessionDb>;
 export let rateLimitCollection: Collection<ApiRequestDb>;
 
-export const connectToDb = async (): Promise<void> => {
-  client = new MongoClient(config.mongodbUrl);
+export const connectToDb = async (
+  url: string = config.mongodbUrl,
+): Promise<void> => {
+  client = new MongoClient(url);
   const db: Db = client.db(DB_NAME);
 
   blogsCollection = db.collection<BlogDb>(BLOGS_COLLECTION_NAME);
