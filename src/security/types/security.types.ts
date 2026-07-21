@@ -8,7 +8,8 @@ export type DeviceSession = {
 export type DeviceSessionDb = {
   userId: string;
   deviceId: string;
-  issuedAt: Date;
+  lastTokenId: string;
+  lastActiveDate: Date;
   expiresAt: Date;
   deviceName: string;
   ip: string;

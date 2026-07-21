@@ -43,18 +43,15 @@ export const authService = {
 
     const userId = user._id.toString();
     const deviceId = randomUUID();
+    const jti = randomUUID();
 
     const { token: accessToken } = jwtService.createToken(
       { userId },
       config.accessTokenSecret,
       config.accessTokenExpiresIn as NonNullable<SignOptions['expiresIn']>,
     );
-    const {
-      token: refreshToken,
-      iat,
-      exp,
-    } = jwtService.createToken(
-      { userId, deviceId },
+    const { token: refreshToken, exp } = jwtService.createToken(
+      { userId, deviceId, jti },
       config.refreshTokenSecret,
       config.refreshTokenExpiresIn as NonNullable<SignOptions['expiresIn']>,
     );
@@ -62,7 +59,8 @@ export const authService = {
     await securityRepository.createSession({
       userId,
       deviceId,
-      issuedAt: new Date(iat * 1000),
+      lastTokenId: jti,
+      lastActiveDate: new Date(),
       expiresAt: new Date(exp * 1000),
       deviceName,
       ip,
@@ -186,13 +184,13 @@ export const authService = {
       config.refreshTokenSecret,
     );
 
-    if (!tokenPayload) {
+    if (!tokenPayload || !tokenPayload.jti) {
       return { status: ResultStatus.Unauthorized, extensions: [], data: null };
     }
 
     const session = await securityRepository.getSession(
       tokenPayload.deviceId,
-      new Date(tokenPayload.iat * 1000),
+      tokenPayload.jti,
     );
 
     if (!session) {
@@ -215,24 +213,23 @@ export const authService = {
   async refreshToken(
     refreshToken: RefreshTokenPayload,
   ): Promise<Result<{ accessToken: string; refreshToken: string }>> {
+    const jti = randomUUID();
+
     const { token: accessToken } = jwtService.createToken(
       { userId: refreshToken.userId },
       config.accessTokenSecret,
       config.accessTokenExpiresIn as NonNullable<SignOptions['expiresIn']>,
     );
-    const {
-      token: newRefreshToken,
-      iat,
-      exp,
-    } = jwtService.createToken(
-      { userId: refreshToken.userId, deviceId: refreshToken.deviceId },
+    const { token: newRefreshToken, exp } = jwtService.createToken(
+      { userId: refreshToken.userId, deviceId: refreshToken.deviceId, jti },
       config.refreshTokenSecret,
       config.refreshTokenExpiresIn as NonNullable<SignOptions['expiresIn']>,
     );
 
     await securityRepository.updateSession(
       refreshToken.deviceId,
-      new Date(iat * 1000),
+      jti,
+      new Date(),
       new Date(exp * 1000),
     );
 

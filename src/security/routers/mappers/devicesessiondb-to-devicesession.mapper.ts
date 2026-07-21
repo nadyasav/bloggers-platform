@@ -6,6 +6,6 @@ export const mapDeviceSessionDbToDeviceSession = (
 ): DeviceSession => ({
   ip: session.ip,
   title: session.deviceName,
-  lastActiveDate: session.issuedAt.toISOString(),
+  lastActiveDate: session.lastActiveDate.toISOString(),
   deviceId: session.deviceId,
 });

@@ -9,9 +9,9 @@ export const securityRepository = {
 
   async getSession(
     deviceId: string,
-    issuedAt: Date,
+    lastTokenId: string,
   ): Promise<WithId<DeviceSessionDb> | null> {
-    return sessionsCollection.findOne({ deviceId, issuedAt });
+    return sessionsCollection.findOne({ deviceId, lastTokenId });
   },
 
   async getByDeviceId(
@@ -22,12 +22,13 @@ export const securityRepository = {
 
   async updateSession(
     deviceId: string,
-    issuedAt: Date,
+    lastTokenId: string,
+    lastActiveDate: Date,
     expiresAt: Date,
   ): Promise<void> {
     await sessionsCollection.updateOne(
       { deviceId },
-      { $set: { issuedAt, expiresAt } },
+      { $set: { lastTokenId, lastActiveDate, expiresAt } },
     );
   },
 

@@ -359,6 +359,65 @@ describe('POST /auth/logout', () => {
   });
 });
 
+describe('POST /auth/refresh-token', () => {
+  it('should return 401 when the same refresh token is used twice', async () => {
+    await createConfirmedUser();
+    const loginResponse = await login(
+      DEFAULT_USER.login,
+      DEFAULT_USER.password,
+    );
+    const cookie = `${REFRESH_TOKEN_COOKIE}=${getRefreshToken(loginResponse)}`;
+
+    const firstResponse = await request(app)
+      .post('/auth/refresh-token')
+      .set('Cookie', cookie);
+
+    expect(firstResponse.status).toBe(200);
+
+    const secondResponse = await request(app)
+      .post('/auth/refresh-token')
+      .set('Cookie', cookie);
+
+    expect(secondResponse.status).toBe(401);
+  });
+
+  it('should keep the same device and update its lastActiveDate', async () => {
+    await createConfirmedUser();
+    const loginResponse = await login(
+      DEFAULT_USER.login,
+      DEFAULT_USER.password,
+    );
+    const devicesBefore = await request(app)
+      .get('/security/devices')
+      .set(
+        'Cookie',
+        `${REFRESH_TOKEN_COOKIE}=${getRefreshToken(loginResponse)}`,
+      );
+
+    const refreshResponse = await request(app)
+      .post('/auth/refresh-token')
+      .set(
+        'Cookie',
+        `${REFRESH_TOKEN_COOKIE}=${getRefreshToken(loginResponse)}`,
+      );
+
+    expect(refreshResponse.status).toBe(200);
+
+    const devicesAfter = await request(app)
+      .get('/security/devices')
+      .set(
+        'Cookie',
+        `${REFRESH_TOKEN_COOKIE}=${getRefreshToken(refreshResponse)}`,
+      );
+
+    expect(devicesAfter.body).toHaveLength(1);
+    expect(devicesAfter.body[0].deviceId).toBe(devicesBefore.body[0].deviceId);
+    expect(devicesAfter.body[0].lastActiveDate).not.toBe(
+      devicesBefore.body[0].lastActiveDate,
+    );
+  });
+});
+
 describe('POST /auth/login rate limiting', () => {
   it('should return 429 when the request limit is exceeded', async () => {
     const statuses: number[] = [];
