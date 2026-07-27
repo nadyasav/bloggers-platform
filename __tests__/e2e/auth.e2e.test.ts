@@ -295,6 +295,31 @@ describe('POST /auth/registration-confirmation', () => {
     expect(response.status).toBe(400);
     expect(response.body.errorsMessages[0].field).toBe('code');
   });
+
+  it('should return 400 for an expired code', async () => {
+    await request(app).post('/auth/registration').send(REGISTRATION_USER);
+    const user = await usersCollection.findOne({
+      login: REGISTRATION_USER.login,
+    });
+    const code = user!.emailConfirmation.code;
+
+    await usersCollection.updateOne(
+      { login: REGISTRATION_USER.login },
+      { $set: { 'emailConfirmation.expiresAt': new Date(Date.now() - 1000) } },
+    );
+
+    const response = await request(app)
+      .post('/auth/registration-confirmation')
+      .send({ code });
+
+    expect(response.status).toBe(400);
+    expect(response.body.errorsMessages[0].field).toBe('code');
+
+    const notConfirmed = await usersCollection.findOne({
+      login: REGISTRATION_USER.login,
+    });
+    expect(notConfirmed!.emailConfirmation.isConfirmed).toBe(false);
+  });
 });
 
 describe('POST /auth/registration-email-resending', () => {
@@ -327,39 +352,60 @@ describe('POST /auth/registration-email-resending', () => {
     expect(response.status).toBe(400);
     expect(response.body.errorsMessages[0].field).toBe('email');
   });
+
+  it('should issue a new code and reject the previous one', async () => {
+    await request(app).post('/auth/registration').send(REGISTRATION_USER);
+    const user = await usersCollection.findOne({
+      login: REGISTRATION_USER.login,
+    });
+    const prevCode = user!.emailConfirmation.code;
+
+    await request(app)
+      .post('/auth/registration-email-resending')
+      .send({ email: REGISTRATION_USER.email });
+
+    const updatedUser = await usersCollection.findOne({
+      login: REGISTRATION_USER.login,
+    });
+
+    const withPrevCode = await request(app)
+      .post('/auth/registration-confirmation')
+      .send({ code: prevCode });
+
+    expect(withPrevCode.status).toBe(400);
+
+    const withNewCode = await request(app)
+      .post('/auth/registration-confirmation')
+      .send({ code: updatedUser!.emailConfirmation.code });
+
+    expect(withNewCode.status).toBe(204);
+  });
 });
 
-describe('POST /auth/logout', () => {
-  it('should return 204 and invalidate the session', async () => {
+describe('POST /auth/refresh-token', () => {
+  it('should return 200, a new access token and a new httpOnly, secure refresh token cookie', async () => {
     await createConfirmedUser();
     const loginResponse = await login(
       DEFAULT_USER.login,
       DEFAULT_USER.password,
     );
     const refreshToken = getRefreshToken(loginResponse);
-    const cookie = `${REFRESH_TOKEN_COOKIE}=${refreshToken}`;
 
-    const logoutResponse = await request(app)
-      .post('/auth/logout')
-      .set('Cookie', cookie);
-
-    expect(logoutResponse.status).toBe(204);
-
-    const afterLogout = await request(app)
+    const response = await request(app)
       .post('/auth/refresh-token')
-      .set('Cookie', cookie);
+      .set('Cookie', `${REFRESH_TOKEN_COOKIE}=${refreshToken}`);
 
-    expect(afterLogout.status).toBe(401);
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ accessToken: expect.any(String) });
+
+    const refreshCookie = findRefreshTokenCookie(response);
+
+    expect(refreshCookie).toBeDefined();
+    expect(refreshCookie).toContain('HttpOnly');
+    expect(refreshCookie).toContain('Secure');
+    expect(getRefreshToken(response)).not.toBe(refreshToken);
   });
 
-  it('should return 401 without a refresh token', async () => {
-    const response = await request(app).post('/auth/logout');
-
-    expect(response.status).toBe(401);
-  });
-});
-
-describe('POST /auth/refresh-token', () => {
   it('should return 401 when the same refresh token is used twice', async () => {
     await createConfirmedUser();
     const loginResponse = await login(
@@ -416,6 +462,50 @@ describe('POST /auth/refresh-token', () => {
       devicesBefore.body[0].lastActiveDate,
     );
   });
+
+  it('should return 401 without a refresh token cookie', async () => {
+    const response = await request(app).post('/auth/refresh-token');
+
+    expect(response.status).toBe(401);
+  });
+
+  it('should return 401 for an invalid refresh token', async () => {
+    const response = await request(app)
+      .post('/auth/refresh-token')
+      .set('Cookie', `${REFRESH_TOKEN_COOKIE}=invalid.refresh.token`);
+
+    expect(response.status).toBe(401);
+  });
+});
+
+describe('POST /auth/logout', () => {
+  it('should return 204 and invalidate the session', async () => {
+    await createConfirmedUser();
+    const loginResponse = await login(
+      DEFAULT_USER.login,
+      DEFAULT_USER.password,
+    );
+    const refreshToken = getRefreshToken(loginResponse);
+    const cookie = `${REFRESH_TOKEN_COOKIE}=${refreshToken}`;
+
+    const logoutResponse = await request(app)
+      .post('/auth/logout')
+      .set('Cookie', cookie);
+
+    expect(logoutResponse.status).toBe(204);
+
+    const afterLogout = await request(app)
+      .post('/auth/refresh-token')
+      .set('Cookie', cookie);
+
+    expect(afterLogout.status).toBe(401);
+  });
+
+  it('should return 401 without a refresh token', async () => {
+    const response = await request(app).post('/auth/logout');
+
+    expect(response.status).toBe(401);
+  });
 });
 
 describe('POST /auth/login rate limiting', () => {
@@ -431,5 +521,21 @@ describe('POST /auth/login rate limiting', () => {
       statuses.slice(0, RATE_LIMIT.LIMIT).every((status) => status === 401),
     ).toBe(true);
     expect(statuses[RATE_LIMIT.LIMIT]).toBe(429);
+  });
+
+  it('should count attempts per endpoint separately', async () => {
+    for (let i = 0; i < RATE_LIMIT.LIMIT + 1; i++) {
+      await login('ghost', DEFAULT_USER.password);
+    }
+
+    const exhausted = await login('ghost', DEFAULT_USER.password);
+    expect(exhausted.status).toBe(429);
+
+    const otherEndpoint = await request(app)
+      .post('/auth/registration')
+      .send(REGISTRATION_USER);
+
+    expect(otherEndpoint.status).not.toBe(429);
+    expect(otherEndpoint.status).toBe(204);
   });
 });
