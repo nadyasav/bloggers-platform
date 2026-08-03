@@ -48,8 +48,24 @@ export function createUnconfirmedUser(
   return insertUserToDb(overrides, false);
 }
 
-export async function login(loginOrEmail: string, password: string) {
-  return request(app).post('/auth/login').send({ loginOrEmail, password });
+export async function login(
+  loginOrEmail: string,
+  password: string,
+  userAgent?: string,
+) {
+  const req = request(app).post('/auth/login');
+
+  if (userAgent) {
+    req.set('User-Agent', userAgent);
+  }
+
+  return req.send({ loginOrEmail, password });
+}
+
+export function refreshSession(refreshToken: string) {
+  return request(app)
+    .post('/auth/refresh-token')
+    .set('Cookie', `${REFRESH_TOKEN_COOKIE}=${refreshToken}`);
 }
 
 export function findRefreshTokenCookie(
