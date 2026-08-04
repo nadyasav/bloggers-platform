@@ -17,6 +17,7 @@ import {
   getRefreshToken,
   refreshSession,
   clearDb,
+  logout,
 } from '../utils/auth-utils';
 import {
   getDevices,
@@ -25,7 +26,7 @@ import {
   sortedDeviceIds,
 } from '../utils/security-utils';
 
-const USER_AGENTS = ['device-1', 'device-2', 'device-3'];
+const USER_AGENTS = ['device-1', 'device-2', 'device-3', 'device-4'];
 
 const OTHER_USER = {
   login: 'otheruser',
@@ -339,5 +340,99 @@ describe('DELETE /security/devices', () => {
     const response = await deleteOtherDevices('invalid.refresh.token');
 
     expect(response.status).toBe(401);
+  });
+});
+
+describe('device sessions scenario', () => {
+  it('should keep devices in sync through refresh, delete, logout and delete-all', async () => {
+    const loggedDevices = await loginDevices();
+
+    const devicesBeforeRefresh = await getDevices(
+      loggedDevices[0].refreshToken,
+    );
+
+    expect(devicesBeforeRefresh.status).toBe(200);
+    expect(devicesBeforeRefresh.body).toHaveLength(USER_AGENTS.length);
+
+    const refreshResponse = await refreshSession(loggedDevices[0].refreshToken);
+
+    expect(refreshResponse.status).toBe(200);
+
+    const rotatedToken = getRefreshToken(refreshResponse);
+    const devicesAfterRefresh = await getDevices(rotatedToken);
+
+    expect(devicesAfterRefresh.status).toBe(200);
+    expect(devicesAfterRefresh.body).toHaveLength(USER_AGENTS.length);
+    expect(sortedDeviceIds(devicesAfterRefresh.body)).toEqual(
+      sortedDeviceIds(devicesBeforeRefresh.body),
+    );
+
+    const device1Before: DeviceSession = devicesBeforeRefresh.body.find(
+      (device: DeviceSession) => device.deviceId === loggedDevices[0].deviceId,
+    );
+    const device1After: DeviceSession = devicesAfterRefresh.body.find(
+      (device: DeviceSession) => device.deviceId === loggedDevices[0].deviceId,
+    );
+
+    expect(new Date(device1After.lastActiveDate).getTime()).toBeGreaterThan(
+      new Date(device1Before.lastActiveDate).getTime(),
+    );
+
+    const notRefreshedLoggedDevices = loggedDevices.slice(1);
+
+    for (const notRefreshedLoggedDevice of notRefreshedLoggedDevices) {
+      const sessionBefore = devicesBeforeRefresh.body.find(
+        (device: DeviceSession) =>
+          device.deviceId === notRefreshedLoggedDevice.deviceId,
+      );
+      const sessionAfter = devicesAfterRefresh.body.find(
+        (device: DeviceSession) =>
+          device.deviceId === notRefreshedLoggedDevice.deviceId,
+      );
+
+      expect(sessionAfter.lastActiveDate).toBe(sessionBefore.lastActiveDate);
+    }
+
+    const deleteResponse = await deleteDevice(
+      rotatedToken,
+      loggedDevices[1].deviceId,
+    );
+
+    expect(deleteResponse.status).toBe(204);
+
+    const devicesAfterDelete = await getDevices(rotatedToken);
+
+    expect(devicesAfterDelete.status).toBe(200);
+    expect(devicesAfterDelete.body).toHaveLength(USER_AGENTS.length - 1);
+    expect(sortedDeviceIds(devicesAfterDelete.body)).not.toContain(
+      loggedDevices[1].deviceId,
+    );
+
+    const logoutResponse = await logout(loggedDevices[2].refreshToken);
+
+    expect(logoutResponse.status).toBe(204);
+
+    const devicesAfterLogout = await getDevices(rotatedToken);
+
+    expect(devicesAfterLogout.status).toBe(200);
+    expect(devicesAfterLogout.body).toHaveLength(USER_AGENTS.length - 2);
+    expect(sortedDeviceIds(devicesAfterLogout.body)).not.toContain(
+      loggedDevices[2].deviceId,
+    );
+    expect(sortedDeviceIds(devicesAfterLogout.body)).toEqual(
+      [loggedDevices[0].deviceId, loggedDevices[3].deviceId].sort(),
+    );
+
+    const deleteOtherResponse = await deleteOtherDevices(rotatedToken);
+
+    expect(deleteOtherResponse.status).toBe(204);
+
+    const devicesAfterDeleteOther = await getDevices(rotatedToken);
+
+    expect(devicesAfterDeleteOther.status).toBe(200);
+    expect(devicesAfterDeleteOther.body).toHaveLength(1);
+    expect(devicesAfterDeleteOther.body[0].deviceId).toBe(
+      loggedDevices[0].deviceId,
+    );
   });
 });

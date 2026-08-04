@@ -91,3 +91,9 @@ export function getRefreshToken(response: request.Response): string {
 export async function clearDb() {
   await request(app).delete('/testing/all-data');
 }
+
+export function logout(refreshToken: string) {
+  return request(app)
+    .post('/auth/logout')
+    .set('Cookie', `${REFRESH_TOKEN_COOKIE}=${refreshToken}`);
+}
