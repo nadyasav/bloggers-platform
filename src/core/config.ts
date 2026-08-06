@@ -1,5 +1,6 @@
 const defaults = {
   PORT: '5001',
+  TRUST_PROXY: '0',
   ACCESS_TOKEN_EXPIRES_IN: '15m',
   REFRESH_TOKEN_EXPIRES_IN: '7d',
   EMAIL_CONFIRM_EXPIRES_IN_MINS: '30',
@@ -20,6 +21,7 @@ const getConfig = () => {
 
   const result = {
     port: process.env.PORT || defaults.PORT,
+    trustProxy: Number(process.env.TRUST_PROXY || defaults.TRUST_PROXY),
     mongodbUrl: getEnvVar('MONGODB_URL'),
     accessTokenSecret: getEnvVar('ACCESS_TOKEN_SECRET'),
     accessTokenExpiresIn:

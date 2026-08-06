@@ -5,6 +5,7 @@ if (!globalThis.crypto) {
 }
 
 process.env.NODE_ENV = 'test';
+process.env.TRUST_PROXY = '1';
 process.env.MONGODB_URL = 'mongodb://127.0.0.1:27017';
 process.env.ACCESS_TOKEN_SECRET = 'test-access-secret';
 process.env.ACCESS_TOKEN_EXPIRES_IN = '15m';

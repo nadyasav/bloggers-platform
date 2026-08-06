@@ -538,4 +538,23 @@ describe('POST /auth/login rate limiting', () => {
     expect(otherEndpoint.status).not.toBe(429);
     expect(otherEndpoint.status).toBe(204);
   });
+
+  it('should count attempts per ip separately', async () => {
+    const loginFromIp = (ip: string) =>
+      request(app)
+        .post('/auth/login')
+        .set('X-Forwarded-For', ip)
+        .send({ loginOrEmail: 'ghost', password: DEFAULT_USER.password });
+
+    for (let i = 0; i < RATE_LIMIT.LIMIT + 1; i++) {
+      await loginFromIp('192.0.2.1');
+    }
+
+    const blockedResponse = await loginFromIp('192.0.2.1');
+    expect(blockedResponse.status).toBe(429);
+
+    const allowedResponse = await loginFromIp('192.0.2.2');
+    expect(allowedResponse.status).not.toBe(429);
+    expect(allowedResponse.status).toBe(401);
+  });
 });
