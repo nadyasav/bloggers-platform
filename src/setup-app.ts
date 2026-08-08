@@ -6,8 +6,11 @@ import { testingRouter } from './testing/routers/testing.router';
 import { usersRouter } from './users/routers/users.router';
 import { authRouter } from './auth/routers/auth.router';
 import { commentsRouter } from './comments/routers/comments.router';
+import { securityRouter } from './security/routers/security.router';
+import { config } from './core/config';
 
 export const setupApp = (app: Express) => {
+  app.set('trust proxy', config.trustProxy);
   app.use(express.json());
   app.use(cookieParser());
 
@@ -20,6 +23,7 @@ export const setupApp = (app: Express) => {
   app.use('/users', usersRouter);
   app.use('/auth', authRouter);
   app.use('/comments', commentsRouter);
+  app.use('/security', securityRouter);
 
   if (process.env.NODE_ENV === 'test') {
     app.use('/testing', testingRouter);

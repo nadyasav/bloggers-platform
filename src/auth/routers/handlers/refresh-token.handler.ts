@@ -4,7 +4,7 @@ import { ResultStatus } from '../../../core/types/result.types';
 import { REFRESH_TOKEN_COOKIE } from '../../auth.constants';
 
 export async function refreshTokenHandler(req: Request, res: Response) {
-  const result = await authService.refreshToken(req.refreshToken!);
+  const result = await authService.refreshToken(req.refreshTokenPayload!);
 
   if (result.status !== ResultStatus.Success) {
     throw new Error();

@@ -1,10 +1,6 @@
-export type InvalidTokenDb = {
-  token: string;
-  expiresAt: Date;
-};
-
-export type TokenWithPayload = {
-  token: string;
+export type RefreshTokenPayload = {
   userId: string;
-  expiresAt: Date;
+  deviceId: string;
+  iat: number;
+  exp: number;
 };

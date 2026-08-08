@@ -13,25 +13,52 @@ import { emailResendingHandler } from './handlers/email-resending.handler';
 import { refreshTokenHandler } from './handlers/refresh-token.handler';
 import { logoutHandler } from './handlers/logout.handler';
 import { refreshTokenAuthMiddleware } from '../middlewares/refresh-token-auth.middleware';
+import { rateLimit } from '../../core/middlewares/rate-limit.middleware';
+import { AUTH_BASE_PATH, AUTH_PATHS, RATE_LIMIT } from '../auth.constants';
 
 export const authRouter = Router();
 
 authRouter
-  .post('/login', loginValidation, validationResultMiddleware, loginHandler)
   .post(
-    '/registration',
+    AUTH_PATHS.LOGIN,
+    rateLimit(
+      AUTH_BASE_PATH + AUTH_PATHS.LOGIN,
+      RATE_LIMIT.LIMIT,
+      RATE_LIMIT.WINDOW_SECONDS,
+    ),
+    loginValidation,
+    validationResultMiddleware,
+    loginHandler,
+  )
+  .post(
+    AUTH_PATHS.REGISTRATION,
+    rateLimit(
+      AUTH_BASE_PATH + AUTH_PATHS.REGISTRATION,
+      RATE_LIMIT.LIMIT,
+      RATE_LIMIT.WINDOW_SECONDS,
+    ),
     registrationValidation,
     validationResultMiddleware,
     registrationHandler,
   )
   .post(
-    '/registration-confirmation',
+    AUTH_PATHS.REGISTRATION_CONFIRMATION,
+    rateLimit(
+      AUTH_BASE_PATH + AUTH_PATHS.REGISTRATION_CONFIRMATION,
+      RATE_LIMIT.LIMIT,
+      RATE_LIMIT.WINDOW_SECONDS,
+    ),
     registrationConfirmationValidation,
     validationResultMiddleware,
     registrationConfirmationHandler,
   )
   .post(
-    '/registration-email-resending',
+    AUTH_PATHS.REGISTRATION_EMAIL_RESENDING,
+    rateLimit(
+      AUTH_BASE_PATH + AUTH_PATHS.REGISTRATION_EMAIL_RESENDING,
+      RATE_LIMIT.LIMIT,
+      RATE_LIMIT.WINDOW_SECONDS,
+    ),
     emailResendingValidation,
     validationResultMiddleware,
     emailResendingHandler,

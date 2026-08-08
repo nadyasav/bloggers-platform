@@ -1,6 +1,7 @@
 import { bcryptService } from '../../core/services/bcrypt.service';
 import { Result, ResultStatus } from '../../core/types/result.types';
 import { UserInputDto } from '../dto/user-input.dto';
+import { UserAlreadyExistsError } from '../errors/user-already-exists.error';
 import { UserNotFoundError } from '../errors/user-not-found.error';
 import { usersRepository } from '../repositories/users.repository';
 import { EmailConfirmation, UserDb } from '../types/user.types';
@@ -39,8 +40,20 @@ export const usersService = {
       createdAt: new Date(),
     };
 
-    const id = await usersRepository.create(user);
-    return { status: ResultStatus.Success, extensions: [], data: id };
+    try {
+      const id = await usersRepository.create(user);
+      return { status: ResultStatus.Success, extensions: [], data: id };
+    } catch (error) {
+      if (error instanceof UserAlreadyExistsError) {
+        return {
+          status: ResultStatus.BadRequest,
+          extensions: [{ field: error.duplicateField, message: error.message }],
+          data: null,
+        };
+      }
+
+      throw error;
+    }
   },
 
   async delete(id: string): Promise<Result> {

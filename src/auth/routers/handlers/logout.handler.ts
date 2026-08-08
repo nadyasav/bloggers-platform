@@ -3,7 +3,7 @@ import { authService } from '../../application/auth.service';
 import { REFRESH_TOKEN_COOKIE } from '../../auth.constants';
 
 export async function logoutHandler(req: Request, res: Response) {
-  await authService.logout(req.refreshToken!);
+  await authService.logout(req.refreshTokenPayload!);
 
   res.clearCookie(REFRESH_TOKEN_COOKIE);
   res.sendStatus(204);
