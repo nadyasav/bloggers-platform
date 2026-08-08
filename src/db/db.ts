@@ -47,6 +47,10 @@ export const connectToDb = async (
       { expiresAt: 1 },
       { expireAfterSeconds: 0 },
     );
+
+    await usersCollection.createIndex({ login: 1 }, { unique: true });
+    await usersCollection.createIndex({ email: 1 }, { unique: true });
+
     console.log('Connected to database');
   } catch (error) {
     await client.close();
