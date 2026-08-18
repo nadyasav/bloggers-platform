@@ -15,6 +15,8 @@ import { authRepository } from '../repositories/auth.repository';
 import { RefreshTokenPayload } from '../types/auth.types';
 import { LoginInputDto } from '../dto/login-input.dto';
 import { securityRepository } from '../../security/repositories/security.repository';
+import { PasswordRecoveryInputDto } from '../dto/password-recovery-input.dto';
+import { NewPasswordInputDto } from '../dto/new-password-input.dto';
 
 export const authService = {
   async login(
@@ -172,6 +174,70 @@ export const authService = {
           error,
         );
       });
+
+    return { status: ResultStatus.Success, extensions: [], data: null };
+  },
+
+  async recoverPassword(dto: PasswordRecoveryInputDto): Promise<Result<null>> {
+    const user = await usersRepository.getByEmail(dto.email);
+
+    if (!user) {
+      return { status: ResultStatus.NotFound, extensions: [], data: null };
+    }
+
+    const expiresInMs = config.passwordRecoveryExpiresInMins * 60 * 1000;
+    const newCode = randomUUID();
+
+    await authRepository.updatePasswordRecoveryCode(
+      user._id.toString(),
+      newCode,
+      new Date(Date.now() + expiresInMs),
+    );
+
+    nodemailerService
+      .sendEmail(dto.email, emailTemplate.passwordRecovery(newCode))
+      .catch((error) => {
+        console.error('Failed to send password recovery email: ', error);
+      });
+
+    return { status: ResultStatus.Success, extensions: [], data: null };
+  },
+
+  async setNewPassword(dto: NewPasswordInputDto): Promise<Result<null>> {
+    const RECOVERY_CODE_KEY = 'recoveryCode';
+    const user = await authRepository.getByPasswordRecoveryCode(
+      dto.recoveryCode,
+    );
+
+    if (!user || !user.passwordRecovery) {
+      return {
+        status: ResultStatus.BadRequest,
+        extensions: [
+          {
+            field: RECOVERY_CODE_KEY,
+            message: `${RECOVERY_CODE_KEY} is incorrect`,
+          },
+        ],
+        data: null,
+      };
+    }
+
+    if (user.passwordRecovery.expiresAt < new Date()) {
+      return {
+        status: ResultStatus.BadRequest,
+        extensions: [
+          {
+            field: RECOVERY_CODE_KEY,
+            message: `${RECOVERY_CODE_KEY} has expired`,
+          },
+        ],
+        data: null,
+      };
+    }
+
+    const passwordHash = await bcryptService.generateHash(dto.newPassword);
+
+    await authRepository.setNewPassword(user._id.toString(), passwordHash);
 
     return { status: ResultStatus.Success, extensions: [], data: null };
   },

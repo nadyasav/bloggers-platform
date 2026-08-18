@@ -29,4 +29,28 @@ export const authRepository = {
       },
     );
   },
+
+  async getByPasswordRecoveryCode(
+    code: string,
+  ): Promise<WithId<UserDb> | null> {
+    return usersCollection.findOne({ 'passwordRecovery.code': code });
+  },
+
+  async updatePasswordRecoveryCode(
+    id: string,
+    code: string,
+    expiresAt: Date,
+  ): Promise<void> {
+    await usersCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { passwordRecovery: { code, expiresAt } } },
+    );
+  },
+
+  async setNewPassword(id: string, passwordHash: string): Promise<void> {
+    await usersCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { passwordHash }, $unset: { passwordRecovery: '' } },
+    );
+  },
 };

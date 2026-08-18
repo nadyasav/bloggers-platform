@@ -4,6 +4,7 @@ const defaults = {
   ACCESS_TOKEN_EXPIRES_IN: '15m',
   REFRESH_TOKEN_EXPIRES_IN: '7d',
   EMAIL_CONFIRM_EXPIRES_IN_MINS: '30',
+  PASSWORD_RECOVERY_EXPIRES_IN_MINS: '30',
 };
 
 const getConfig = () => {
@@ -41,6 +42,10 @@ const getConfig = () => {
     emailConfirmExpiresInMins: Number(
       process.env.EMAIL_CONFIRM_EXPIRES_IN_MINS ||
         defaults.EMAIL_CONFIRM_EXPIRES_IN_MINS,
+    ),
+    passwordRecoveryExpiresInMins: Number(
+      process.env.PASSWORD_RECOVERY_EXPIRES_IN_MINS ||
+        defaults.PASSWORD_RECOVERY_EXPIRES_IN_MINS,
     ),
   };
 

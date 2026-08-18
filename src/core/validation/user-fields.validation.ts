@@ -25,17 +25,20 @@ export const loginValidation = body(USER_KEYS.login)
     `${USER_KEYS.login} must contain only letters, numbers, underscores or hyphens`,
   );
 
-export const passwordValidation = body(USER_KEYS.password)
-  .exists()
-  .withMessage(`${USER_KEYS.password} is required`)
-  .isString()
-  .withMessage(`${USER_KEYS.password} should be a string`)
-  .bail()
-  .trim()
-  .notEmpty()
-  .withMessage(`${USER_KEYS.password} is required`)
-  .isLength({ min: 6, max: 20 })
-  .withMessage(`${USER_KEYS.password} must be between 6 and 20 characters`);
+export const createPasswordValidation = (field: string) =>
+  body(field)
+    .exists()
+    .withMessage(`${field} is required`)
+    .isString()
+    .withMessage(`${field} should be a string`)
+    .bail()
+    .trim()
+    .notEmpty()
+    .withMessage(`${field} is required`)
+    .isLength({ min: 6, max: 20 })
+    .withMessage(`${field} must be between 6 and 20 characters`);
+
+export const passwordValidation = createPasswordValidation(USER_KEYS.password);
 
 export const emailValidation = body(USER_KEYS.email)
   .exists()

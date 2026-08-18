@@ -15,6 +15,10 @@ import { logoutHandler } from './handlers/logout.handler';
 import { refreshTokenAuthMiddleware } from '../middlewares/refresh-token-auth.middleware';
 import { rateLimit } from '../../core/middlewares/rate-limit.middleware';
 import { AUTH_BASE_PATH, AUTH_PATHS, RATE_LIMIT } from '../auth.constants';
+import { passwordRecoveryValidation } from '../validation/password-recovery.validation';
+import { passwordRecoveryHandler } from './handlers/password-recovery.handler';
+import { newPasswordValidation } from '../validation/new-password.validation';
+import { newPasswordHandler } from './handlers/new-password.handler';
 
 export const authRouter = Router();
 
@@ -29,6 +33,28 @@ authRouter
     loginValidation,
     validationResultMiddleware,
     loginHandler,
+  )
+  .post(
+    AUTH_PATHS.PASSWORD_RECOVERY,
+    rateLimit(
+      AUTH_BASE_PATH + AUTH_PATHS.PASSWORD_RECOVERY,
+      RATE_LIMIT.LIMIT,
+      RATE_LIMIT.WINDOW_SECONDS,
+    ),
+    passwordRecoveryValidation,
+    validationResultMiddleware,
+    passwordRecoveryHandler,
+  )
+  .post(
+    AUTH_PATHS.NEW_PASSWORD,
+    rateLimit(
+      AUTH_BASE_PATH + AUTH_PATHS.NEW_PASSWORD,
+      RATE_LIMIT.LIMIT,
+      RATE_LIMIT.WINDOW_SECONDS,
+    ),
+    newPasswordValidation,
+    validationResultMiddleware,
+    newPasswordHandler,
   )
   .post(
     AUTH_PATHS.REGISTRATION,

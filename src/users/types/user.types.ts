@@ -11,7 +11,13 @@ export type EmailConfirmation = {
   isConfirmed: boolean;
 };
 
+export type PasswordRecovery = {
+  code: string;
+  expiresAt: Date;
+};
+
 export type UserDb = Omit<User, 'id'> & {
   passwordHash: string;
   emailConfirmation: EmailConfirmation;
+  passwordRecovery?: PasswordRecovery;
 };
