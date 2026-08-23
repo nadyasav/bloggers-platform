@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { REFRESH_TOKEN_COOKIE } from '../auth.constants';
-import { authService } from '../application/auth.service';
+import { authService } from '../../composition-root';
 import { ResultStatus } from '../../core/types/result.types';
 
 export const refreshTokenAuthMiddleware = async (

@@ -2,17 +2,17 @@ import { ObjectId, WithId } from 'mongodb';
 import { UserDb } from '../../users/types/user.types';
 import { usersCollection } from '../../db/db';
 
-export const authRepository = {
+export class AuthRepository {
   async getByConfirmationCode(code: string): Promise<WithId<UserDb> | null> {
     return usersCollection.findOne({ 'emailConfirmation.code': code });
-  },
+  }
 
   async confirmEmail(id: string): Promise<void> {
     await usersCollection.updateOne(
       { _id: new ObjectId(id) },
       { $set: { 'emailConfirmation.isConfirmed': true } },
     );
-  },
+  }
 
   async updateEmailConfirmationCode(
     id: string,
@@ -28,13 +28,13 @@ export const authRepository = {
         },
       },
     );
-  },
+  }
 
   async getByPasswordRecoveryCode(
     code: string,
   ): Promise<WithId<UserDb> | null> {
     return usersCollection.findOne({ 'passwordRecovery.code': code });
-  },
+  }
 
   async updatePasswordRecoveryCode(
     id: string,
@@ -45,12 +45,12 @@ export const authRepository = {
       { _id: new ObjectId(id) },
       { $set: { passwordRecovery: { code, expiresAt } } },
     );
-  },
+  }
 
   async setNewPassword(id: string, passwordHash: string): Promise<void> {
     await usersCollection.updateOne(
       { _id: new ObjectId(id) },
       { $set: { passwordHash }, $unset: { passwordRecovery: '' } },
     );
-  },
-};
+  }
+}

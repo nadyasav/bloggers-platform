@@ -1,6 +1,6 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { connectToDb, client } from '../../src/db/db';
-import { usersRepository } from '../../src/users/repositories/users.repository';
+import { UsersRepository } from '../../src/users/repositories/users.repository';
 import { UserAlreadyExistsError } from '../../src/users/errors/user-already-exists.error';
 import { UserDb } from '../../src/users/types/user.types';
 import {
@@ -23,6 +23,8 @@ function makeUser(overrides: Partial<UserDb> = {}): UserDb {
     ...overrides,
   };
 }
+
+const usersRepository = new UsersRepository();
 
 let mongoServer: MongoMemoryServer;
 

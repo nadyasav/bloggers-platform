@@ -6,14 +6,14 @@ import { UserAlreadyExistsError } from '../errors/user-already-exists.error';
 
 const DUPLICATE_KEY_ERROR_CODE = 11000;
 
-export const usersRepository = {
+export class UsersRepository {
   async getByLogin(login: string): Promise<WithId<UserDb> | null> {
     return usersCollection.findOne({ login });
-  },
+  }
 
   async getByEmail(email: string): Promise<WithId<UserDb> | null> {
     return usersCollection.findOne({ email });
-  },
+  }
 
   async getByLoginOrEmail(
     loginOrEmail: string,
@@ -21,11 +21,11 @@ export const usersRepository = {
     return usersCollection.findOne({
       $or: [{ login: loginOrEmail }, { email: loginOrEmail }],
     });
-  },
+  }
 
   async getById(id: string): Promise<WithId<UserDb> | null> {
     return usersCollection.findOne({ _id: new ObjectId(id) });
-  },
+  }
 
   async create(user: UserDb): Promise<string> {
     try {
@@ -45,7 +45,7 @@ export const usersRepository = {
 
       throw error;
     }
-  },
+  }
 
   async delete(id: string): Promise<void> {
     const result = await usersCollection.deleteOne({ _id: new ObjectId(id) });
@@ -53,5 +53,5 @@ export const usersRepository = {
     if (result.deletedCount === 0) {
       throw new UserNotFoundError();
     }
-  },
-};
+  }
+}

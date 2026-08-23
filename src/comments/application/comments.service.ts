@@ -1,6 +1,6 @@
 import { Result, ResultStatus } from '../../core/types/result.types';
 import { postsRepository } from '../../posts/repositories/posts.repository';
-import { usersRepository } from '../../users/repositories/users.repository';
+import { usersRepository } from '../../composition-root';
 import { commentsRepository } from '../repositories/comments.repository';
 import { COMMENT_ERRORS } from '../comment.constants';
 import { ClientSession } from 'mongodb';

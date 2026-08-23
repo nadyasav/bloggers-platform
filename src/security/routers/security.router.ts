@@ -1,16 +1,22 @@
 import { Router } from 'express';
 import { refreshTokenAuthMiddleware } from '../../auth/middlewares/refresh-token-auth.middleware';
-import { getDevicesHandler } from './handlers/get-devices.handler';
-import { deleteOtherDevicesHandler } from './handlers/delete-other-devices.handler';
-import { deleteDeviceHandler } from './handlers/delete-device.handler';
+import { securityController } from '../../composition-root';
 
 export const securityRouter = Router();
 
 securityRouter
-  .get('/devices', refreshTokenAuthMiddleware, getDevicesHandler)
-  .delete('/devices', refreshTokenAuthMiddleware, deleteOtherDevicesHandler)
+  .get(
+    '/devices',
+    refreshTokenAuthMiddleware,
+    securityController.getDevicesHandler.bind(securityController),
+  )
+  .delete(
+    '/devices',
+    refreshTokenAuthMiddleware,
+    securityController.deleteOtherDevicesHandler.bind(securityController),
+  )
   .delete(
     '/devices/:deviceId',
     refreshTokenAuthMiddleware,
-    deleteDeviceHandler,
+    securityController.deleteDeviceHandler.bind(securityController),
   );

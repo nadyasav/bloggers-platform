@@ -1,24 +1,30 @@
 import { bcryptService } from '../../core/services/bcrypt.service';
 import { Result, ResultStatus } from '../../core/types/result.types';
 import { UserInputDto } from '../dto/user-input.dto';
-import { UserAlreadyExistsError } from '../errors/user-already-exists.error';
 import { UserNotFoundError } from '../errors/user-not-found.error';
-import { usersRepository } from '../repositories/users.repository';
+import { UsersRepository } from '../repositories/users.repository';
 import { EmailConfirmation, UserDb } from '../types/user.types';
+import { UserAlreadyExistsError } from '../errors/user-already-exists.error';
 
-export const usersService = {
+export class UsersService {
+  private usersRepository: UsersRepository;
+
+  constructor(usersRepository: UsersRepository) {
+    this.usersRepository = usersRepository;
+  }
+
   async create(
     dto: UserInputDto,
     emailConfirmation?: EmailConfirmation,
   ): Promise<Result<string | null>> {
     const extensions = [];
 
-    const existingLogin = await usersRepository.getByLogin(dto.login);
+    const existingLogin = await this.usersRepository.getByLogin(dto.login);
     if (existingLogin) {
       extensions.push({ field: 'login', message: 'login should be unique' });
     }
 
-    const existingEmail = await usersRepository.getByEmail(dto.email);
+    const existingEmail = await this.usersRepository.getByEmail(dto.email);
     if (existingEmail) {
       extensions.push({ field: 'email', message: 'email should be unique' });
     }
@@ -41,7 +47,7 @@ export const usersService = {
     };
 
     try {
-      const id = await usersRepository.create(user);
+      const id = await this.usersRepository.create(user);
       return { status: ResultStatus.Success, extensions: [], data: id };
     } catch (error) {
       if (error instanceof UserAlreadyExistsError) {
@@ -54,11 +60,11 @@ export const usersService = {
 
       throw error;
     }
-  },
+  }
 
   async delete(id: string): Promise<Result> {
     try {
-      await usersRepository.delete(id);
+      await this.usersRepository.delete(id);
       return { status: ResultStatus.Success, extensions: [], data: null };
     } catch (error) {
       if (error instanceof UserNotFoundError) {
@@ -72,5 +78,5 @@ export const usersService = {
 
       throw error;
     }
-  },
-};
+  }
+}
