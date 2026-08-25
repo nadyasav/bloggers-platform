@@ -1,10 +1,10 @@
 import { rateLimitCollection } from '../../db/db';
 import { ApiRequestDb } from '../types/rate-limit.types';
 
-export const rateLimitRepository = {
+export class RateLimitRepository {
   async createRequest(apiRequest: ApiRequestDb): Promise<void> {
     await rateLimitCollection.insertOne(apiRequest);
-  },
+  }
 
   async getRequestsCount(
     ip: string,
@@ -16,5 +16,5 @@ export const rateLimitRepository = {
       url,
       date: { $gte: dateFrom },
     });
-  },
-};
+  }
+}

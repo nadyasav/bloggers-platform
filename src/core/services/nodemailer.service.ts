@@ -4,7 +4,7 @@ import { config } from '../config';
 
 const SMTP_SSL_PORT = 465;
 
-export const nodemailerService = {
+export class NodemailerService {
   async sendEmail(email: string, htmlTemplate: string) {
     const port = Number(config.email.port);
     const smtpOptions: SMTPTransport.Options = {
@@ -26,5 +26,5 @@ export const nodemailerService = {
     };
 
     await transporter.sendMail(mailOptions);
-  },
-};
+  }
+}

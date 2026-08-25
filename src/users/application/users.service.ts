@@ -1,4 +1,4 @@
-import { bcryptService } from '../../core/services/bcrypt.service';
+import { BcryptService } from '../../core/services/bcrypt.service';
 import { Result, ResultStatus } from '../../core/types/result.types';
 import { UserInputDto } from '../dto/user-input.dto';
 import { UserNotFoundError } from '../errors/user-not-found.error';
@@ -8,9 +8,11 @@ import { UserAlreadyExistsError } from '../errors/user-already-exists.error';
 
 export class UsersService {
   private usersRepository: UsersRepository;
+  private bcryptService: BcryptService;
 
-  constructor(usersRepository: UsersRepository) {
+  constructor(usersRepository: UsersRepository, bcryptService: BcryptService) {
     this.usersRepository = usersRepository;
+    this.bcryptService = bcryptService;
   }
 
   async create(
@@ -33,7 +35,7 @@ export class UsersService {
       return { status: ResultStatus.BadRequest, extensions, data: null };
     }
 
-    const passwordHash = await bcryptService.generateHash(dto.password);
+    const passwordHash = await this.bcryptService.generateHash(dto.password);
     const user: UserDb = {
       login: dto.login,
       email: dto.email,

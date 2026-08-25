@@ -1,13 +1,13 @@
-import { bcryptService } from '../../core/services/bcrypt.service';
+import { BcryptService } from '../../core/services/bcrypt.service';
 import { Result, ResultStatus } from '../../core/types/result.types';
 import { UsersRepository } from '../../users/repositories/users.repository';
-import { jwtService } from '../../core/services/jwt.service';
+import { JwtService } from '../../core/services/jwt.service';
 import { config } from '../../core/config';
 import { SignOptions } from 'jsonwebtoken';
 import { UsersService } from '../../users/application/users.service';
 import { randomUUID } from 'crypto';
 import { RegistrationInputDto } from '../dto/registration-input.dto';
-import { nodemailerService } from '../../core/services/nodemailer.service';
+import { NodemailerService } from '../../core/services/nodemailer.service';
 import { emailTemplate } from '../../core/utils/email-template.util';
 import { RegistrationConfirmationInputDto } from '../dto/registration-confirmation-input.dto';
 import { EmailResendingInputDto } from '../dto/email-resending-input.dto';
@@ -23,17 +23,26 @@ export class AuthService {
   private usersService: UsersService;
   private authRepository: AuthRepository;
   private securityRepository: SecurityRepository;
+  private bcryptService: BcryptService;
+  private jwtService: JwtService;
+  private nodemailerService: NodemailerService;
 
   constructor(
     usersRepository: UsersRepository,
     usersService: UsersService,
     authRepository: AuthRepository,
     securityRepository: SecurityRepository,
+    bcryptService: BcryptService,
+    jwtService: JwtService,
+    nodemailerService: NodemailerService,
   ) {
     this.usersRepository = usersRepository;
     this.usersService = usersService;
     this.authRepository = authRepository;
     this.securityRepository = securityRepository;
+    this.bcryptService = bcryptService;
+    this.jwtService = jwtService;
+    this.nodemailerService = nodemailerService;
   }
 
   async login(
@@ -47,7 +56,7 @@ export class AuthService {
       return { status: ResultStatus.Unauthorized, extensions: [], data: null };
     }
 
-    const isPasswordValid = await bcryptService.compareHash(
+    const isPasswordValid = await this.bcryptService.compareHash(
       dto.password,
       user.passwordHash,
     );
@@ -64,12 +73,12 @@ export class AuthService {
     const deviceId = randomUUID();
     const jti = randomUUID();
 
-    const { token: accessToken } = jwtService.createToken(
+    const { token: accessToken } = this.jwtService.createToken(
       { userId },
       config.accessTokenSecret,
       config.accessTokenExpiresIn as NonNullable<SignOptions['expiresIn']>,
     );
-    const { token: refreshToken, exp } = jwtService.createToken(
+    const { token: refreshToken, exp } = this.jwtService.createToken(
       { userId, deviceId, jti },
       config.refreshTokenSecret,
       config.refreshTokenExpiresIn as NonNullable<SignOptions['expiresIn']>,
@@ -106,7 +115,7 @@ export class AuthService {
       return result;
     }
 
-    nodemailerService
+    this.nodemailerService
       .sendEmail(dto.email, emailTemplate.registration(emailConfirmation.code))
       .catch((error) => {
         console.error(
@@ -183,7 +192,7 @@ export class AuthService {
       new Date(Date.now() + expiresInMs),
     );
 
-    nodemailerService
+    this.nodemailerService
       .sendEmail(dto.email, emailTemplate.registration(newCode))
       .catch((error) => {
         console.error(
@@ -211,7 +220,7 @@ export class AuthService {
       new Date(Date.now() + expiresInMs),
     );
 
-    nodemailerService
+    this.nodemailerService
       .sendEmail(dto.email, emailTemplate.passwordRecovery(newCode))
       .catch((error) => {
         console.error('Failed to send password recovery email: ', error);
@@ -252,7 +261,7 @@ export class AuthService {
       };
     }
 
-    const passwordHash = await bcryptService.generateHash(dto.newPassword);
+    const passwordHash = await this.bcryptService.generateHash(dto.newPassword);
 
     await this.authRepository.setNewPassword(user._id.toString(), passwordHash);
 
@@ -262,7 +271,7 @@ export class AuthService {
   async verifyRefreshToken(
     token: string,
   ): Promise<Result<RefreshTokenPayload>> {
-    const tokenPayload = jwtService.verifyToken(
+    const tokenPayload = this.jwtService.verifyToken(
       token,
       config.refreshTokenSecret,
     );
@@ -298,12 +307,12 @@ export class AuthService {
   ): Promise<Result<{ accessToken: string; refreshToken: string }>> {
     const jti = randomUUID();
 
-    const { token: accessToken } = jwtService.createToken(
+    const { token: accessToken } = this.jwtService.createToken(
       { userId: refreshToken.userId },
       config.accessTokenSecret,
       config.accessTokenExpiresIn as NonNullable<SignOptions['expiresIn']>,
     );
-    const { token: newRefreshToken, exp } = jwtService.createToken(
+    const { token: newRefreshToken, exp } = this.jwtService.createToken(
       { userId: refreshToken.userId, deviceId: refreshToken.deviceId, jti },
       config.refreshTokenSecret,
       config.refreshTokenExpiresIn as NonNullable<SignOptions['expiresIn']>,

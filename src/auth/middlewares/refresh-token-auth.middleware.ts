@@ -1,25 +1,29 @@
 import { NextFunction, Request, Response } from 'express';
 import { REFRESH_TOKEN_COOKIE } from '../auth.constants';
-import { authService } from '../../composition-root';
+import { AuthService } from '../application/auth.service';
 import { ResultStatus } from '../../core/types/result.types';
 
-export const refreshTokenAuthMiddleware = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  const token = req.cookies[REFRESH_TOKEN_COOKIE];
+export class RefreshTokenAuthMiddleware {
+  private authService: AuthService;
 
-  if (!token) {
-    return res.sendStatus(401);
+  constructor(authService: AuthService) {
+    this.authService = authService;
   }
 
-  const result = await authService.verifyRefreshToken(token);
+  async handle(req: Request, res: Response, next: NextFunction) {
+    const token = req.cookies[REFRESH_TOKEN_COOKIE];
 
-  if (result.status !== ResultStatus.Success) {
-    return res.sendStatus(401);
+    if (!token) {
+      return res.sendStatus(401);
+    }
+
+    const result = await this.authService.verifyRefreshToken(token);
+
+    if (result.status !== ResultStatus.Success) {
+      return res.sendStatus(401);
+    }
+
+    req.refreshTokenPayload = result.data;
+    next();
   }
-
-  req.refreshTokenPayload = result.data;
-  next();
-};
+}

@@ -2,7 +2,7 @@ import jwt, { Algorithm, JwtPayload, SignOptions } from 'jsonwebtoken';
 
 const ALGORITHM: Algorithm = 'HS256';
 
-export const jwtService = {
+export class JwtService {
   createToken(
     payload: Record<string, unknown>,
     secret: string,
@@ -18,7 +18,7 @@ export const jwtService = {
     };
 
     return { token, iat: decodedToken.iat, exp: decodedToken.exp };
-  },
+  }
 
   verifyToken(
     token: string,
@@ -34,5 +34,5 @@ export const jwtService = {
     } catch {
       return null;
     }
-  },
-};
+  }
+}

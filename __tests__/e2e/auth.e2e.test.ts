@@ -1,6 +1,6 @@
 jest.mock('../../src/core/services/nodemailer.service', () => ({
-  nodemailerService: {
-    sendEmail: jest.fn().mockResolvedValue(undefined),
+  NodemailerService: class {
+    sendEmail = jest.fn().mockResolvedValue(undefined);
   },
 }));
 

@@ -2,10 +2,10 @@ import { Router } from 'express';
 import { idParamValidation } from '../../core/validation/id-param.validation';
 import { validationResultMiddleware } from '../../core/middlewares/validation-result.middleware';
 import { getCommentHandler } from './handlers/get-comment.handler';
-import { bearerAuthMiddleware } from '../../core/middlewares/auth/bearer-auth.middleware';
 import { deleteCommentHandler } from './handlers/delete-comment.handler';
 import { commentValidation } from '../validation/comment.validation';
 import { updateCommentHandler } from './handlers/update-comment.handler';
+import { bearerAuthMiddleware } from '../../composition-root';
 
 export const commentsRouter = Router();
 
@@ -13,7 +13,7 @@ commentsRouter
   .get('/:id', idParamValidation, validationResultMiddleware, getCommentHandler)
   .put(
     '/:id',
-    bearerAuthMiddleware,
+    bearerAuthMiddleware.handle.bind(bearerAuthMiddleware),
     idParamValidation,
     commentValidation,
     validationResultMiddleware,
@@ -21,7 +21,7 @@ commentsRouter
   )
   .delete(
     '/:id',
-    bearerAuthMiddleware,
+    bearerAuthMiddleware.handle.bind(bearerAuthMiddleware),
     idParamValidation,
     validationResultMiddleware,
     deleteCommentHandler,
