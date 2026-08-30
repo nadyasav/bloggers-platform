@@ -3,10 +3,10 @@ import { commentsCollection } from '../../db/db';
 import { CommentDb } from '../types/comment.types';
 import { CommentQueryDto } from '../dto/comment-query.dto';
 
-export const commentsQueryRepository = {
+export class CommentsQueryRepository {
   async getById(id: string): Promise<WithId<CommentDb> | null> {
     return commentsCollection.findOne({ _id: new ObjectId(id) });
-  },
+  }
 
   async getByPostId(
     postId: string,
@@ -23,5 +23,5 @@ export const commentsQueryRepository = {
       .toArray();
 
     return { comments, totalCount };
-  },
-};
+  }
+}

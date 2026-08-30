@@ -5,7 +5,7 @@ import { ClientSession, ObjectId, WithId } from 'mongodb';
 import { postsCollection } from '../../db/db';
 import { PostNotFoundError } from '../errors/post-not-found.error';
 
-export const postsRepository = {
+export class PostsRepository {
   async getAll(
     query: PostQueryDto,
     blogId?: string,
@@ -22,10 +22,12 @@ export const postsRepository = {
       .toArray();
 
     return { posts, totalCount };
-  },
+  }
+
   async getById(id: string): Promise<WithId<PostDb> | null> {
     return postsCollection.findOne({ _id: new ObjectId(id) });
-  },
+  }
+
   async create(dto: PostInputDto, blogName: string): Promise<WithId<PostDb>> {
     const newPost = {
       title: dto.title,
@@ -38,7 +40,8 @@ export const postsRepository = {
 
     const result = await postsCollection.insertOne(newPost);
     return { _id: result.insertedId, ...newPost };
-  },
+  }
+
   async update(id: string, dto: PostInputDto, blogName: string): Promise<void> {
     const result = await postsCollection.updateOne(
       { _id: new ObjectId(id) },
@@ -56,14 +59,16 @@ export const postsRepository = {
     if (result.matchedCount === 0) {
       throw new PostNotFoundError();
     }
-  },
+  }
+
   async delete(id: string): Promise<void> {
     const result = await postsCollection.deleteOne({ _id: new ObjectId(id) });
 
     if (result.deletedCount === 0) {
       throw new PostNotFoundError();
     }
-  },
+  }
+
   async updateBlogNameField(
     blogId: string,
     blogName: string,
@@ -74,11 +79,11 @@ export const postsRepository = {
       { $set: { blogName } },
       { session },
     );
-  },
+  }
 
   async deleteByBlogId(blogId: string, session?: ClientSession): Promise<void> {
     await postsCollection.deleteMany({ blogId }, { session });
-  },
+  }
 
   async getIdsByBlogId(
     blogId: string,
@@ -90,5 +95,5 @@ export const postsRepository = {
     const ids = posts.map((post) => post._id.toString());
 
     return ids;
-  },
-};
+  }
+}

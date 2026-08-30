@@ -5,7 +5,7 @@ import { ClientSession, ObjectId, WithId } from 'mongodb';
 import { blogsCollection } from '../../db/db';
 import { BlogQueryDto } from '../dto/blog-query.dto';
 
-export const blogsRepository = {
+export class BlogsRepository {
   async getAll(
     query: BlogQueryDto,
   ): Promise<{ blogs: WithId<BlogDb>[]; totalCount: number }> {
@@ -23,10 +23,12 @@ export const blogsRepository = {
       .toArray();
 
     return { blogs, totalCount };
-  },
+  }
+
   async getById(id: string): Promise<WithId<BlogDb> | null> {
     return blogsCollection.findOne({ _id: new ObjectId(id) });
-  },
+  }
+
   async create(dto: BlogInputDto): Promise<WithId<BlogDb>> {
     const newBlog = {
       name: dto.name,
@@ -38,7 +40,8 @@ export const blogsRepository = {
 
     const result = await blogsCollection.insertOne(newBlog);
     return { _id: result.insertedId, ...newBlog };
-  },
+  }
+
   async update(
     id: string,
     dto: BlogInputDto,
@@ -59,7 +62,8 @@ export const blogsRepository = {
     if (result.matchedCount === 0) {
       throw new BlogNotFoundError();
     }
-  },
+  }
+
   async delete(id: string, session?: ClientSession): Promise<void> {
     const result = await blogsCollection.deleteOne(
       { _id: new ObjectId(id) },
@@ -69,5 +73,5 @@ export const blogsRepository = {
     if (result.deletedCount === 0) {
       throw new BlogNotFoundError();
     }
-  },
-};
+  }
+}
