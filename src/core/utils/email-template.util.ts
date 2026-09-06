@@ -14,7 +14,7 @@ export const emailTemplate = {
     `
             <div>
                 <h1>Password recovery</h1>
-                <a href='${config.appUrl}/password-recovery?code=${code}'>Recover password</a>
+                <a href='${config.appUrl}/password-recovery?recoveryCode=${code}'>Recover password</a>
                 <p>Recovery code: <b>${code}</b></p>
             </div>
         `,
