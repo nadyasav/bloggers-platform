@@ -3,7 +3,7 @@ import { UserDb } from '../types/user.types';
 import { usersCollection } from '../../db/db';
 import { UserQueryDto } from '../dto/user-query.dto';
 
-export const usersQueryRepository = {
+export class UsersQueryRepository {
   async getAll(
     query: UserQueryDto,
   ): Promise<{ users: WithId<UserDb>[]; totalCount: number }> {
@@ -35,9 +35,9 @@ export const usersQueryRepository = {
       .toArray();
 
     return { users, totalCount };
-  },
+  }
 
   async getById(id: string): Promise<WithId<UserDb> | null> {
     return usersCollection.findOne({ _id: new ObjectId(id) });
-  },
-};
+  }
+}

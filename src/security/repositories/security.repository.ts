@@ -2,23 +2,23 @@ import { WithId } from 'mongodb';
 import { sessionsCollection } from '../../db/db';
 import { DeviceSessionDb } from '../types/security.types';
 
-export const securityRepository = {
+export class SecurityRepository {
   async createSession(session: DeviceSessionDb): Promise<void> {
     await sessionsCollection.insertOne(session);
-  },
+  }
 
   async getSession(
     deviceId: string,
     lastTokenId: string,
   ): Promise<WithId<DeviceSessionDb> | null> {
     return sessionsCollection.findOne({ deviceId, lastTokenId });
-  },
+  }
 
   async getByDeviceId(
     deviceId: string,
   ): Promise<WithId<DeviceSessionDb> | null> {
     return sessionsCollection.findOne({ deviceId });
-  },
+  }
 
   async updateSession(
     deviceId: string,
@@ -30,11 +30,11 @@ export const securityRepository = {
       { deviceId },
       { $set: { lastTokenId, lastActiveDate, expiresAt } },
     );
-  },
+  }
 
   async deleteByDeviceId(deviceId: string): Promise<void> {
     await sessionsCollection.deleteOne({ deviceId });
-  },
+  }
 
   async deleteOtherSessions(
     userId: string,
@@ -44,5 +44,5 @@ export const securityRepository = {
       userId,
       deviceId: { $ne: currentDeviceId },
     });
-  },
-};
+  }
+}

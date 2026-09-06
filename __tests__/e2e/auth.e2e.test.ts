@@ -1,6 +1,8 @@
+const mockSendEmail = jest.fn().mockResolvedValue(undefined);
+
 jest.mock('../../src/core/services/nodemailer.service', () => ({
-  nodemailerService: {
-    sendEmail: jest.fn().mockResolvedValue(undefined),
+  NodemailerService: class {
+    sendEmail = mockSendEmail;
   },
 }));
 
@@ -43,6 +45,7 @@ afterAll(async () => {
 
 beforeEach(async () => {
   await clearDb();
+  mockSendEmail.mockClear();
 });
 
 describe('POST /auth/login', () => {
@@ -231,6 +234,19 @@ describe('POST /auth/registration', () => {
 
     expect(response.status).toBe(400);
     expect(response.body.errorsMessages[0].field).toBe('email');
+  });
+
+  it('should send a confirmation code by email on registration', async () => {
+    const response = await request(app)
+      .post('/auth/registration')
+      .send(REGISTRATION_USER);
+
+    expect(response.status).toBe(204);
+    expect(mockSendEmail).toHaveBeenCalledTimes(1);
+    expect(mockSendEmail).toHaveBeenCalledWith(
+      REGISTRATION_USER.email,
+      expect.any(String),
+    );
   });
 });
 
@@ -556,5 +572,174 @@ describe('POST /auth/login rate limiting', () => {
     const allowedResponse = await loginFromIp('192.0.2.2');
     expect(allowedResponse.status).not.toBe(429);
     expect(allowedResponse.status).toBe(401);
+  });
+});
+
+describe('POST /auth/password-recovery', () => {
+  it('should return 204 for a registered email', async () => {
+    await createConfirmedUser();
+
+    const response = await request(app)
+      .post('/auth/password-recovery')
+      .send({ email: DEFAULT_USER.email });
+
+    expect(response.status).toBe(204);
+  });
+
+  it('should return 204 for a non-registered email (anti-enumeration)', async () => {
+    const response = await request(app)
+      .post('/auth/password-recovery')
+      .send({ email: 'ghost@test.com' });
+
+    expect(response.status).toBe(204);
+  });
+
+  it('should return 400 for an invalid email format', async () => {
+    const response = await request(app)
+      .post('/auth/password-recovery')
+      .send({ email: 'invalid-email' });
+
+    expect(response.status).toBe(400);
+    expect(response.body.errorsMessages[0].field).toBe('email');
+  });
+
+  it('should save the recovery code to the user in the database', async () => {
+    await createConfirmedUser();
+
+    const response = await request(app)
+      .post('/auth/password-recovery')
+      .send({ email: DEFAULT_USER.email });
+
+    expect(response.status).toBe(204);
+
+    const user = await usersCollection.findOne({ email: DEFAULT_USER.email });
+    expect(user!.passwordRecovery?.code).toBeDefined();
+  });
+
+  it('should send a recovery code by email for a registered user', async () => {
+    await createConfirmedUser();
+
+    const response = await request(app)
+      .post('/auth/password-recovery')
+      .send({ email: DEFAULT_USER.email });
+
+    expect(response.status).toBe(204);
+    expect(mockSendEmail).toHaveBeenCalledTimes(1);
+    expect(mockSendEmail).toHaveBeenCalledWith(
+      DEFAULT_USER.email,
+      expect.any(String),
+    );
+  });
+});
+
+describe('POST /auth/new-password', () => {
+  it('should return 400 for an unknown recovery code', async () => {
+    const response = await request(app)
+      .post('/auth/new-password')
+      .send({ newPassword: 'newpassword123', recoveryCode: 'unknown-code' });
+
+    expect(response.status).toBe(400);
+    expect(response.body.errorsMessages[0].field).toBe('recoveryCode');
+  });
+
+  it('should return 400 for a password that is too short', async () => {
+    const response = await request(app)
+      .post('/auth/new-password')
+      .send({ newPassword: '12345', recoveryCode: 'unknown-code' });
+
+    expect(response.status).toBe(400);
+    expect(response.body.errorsMessages[0].field).toBe('newPassword');
+  });
+
+  it('should update the password and log in with the new one', async () => {
+    await createConfirmedUser();
+
+    await request(app)
+      .post('/auth/password-recovery')
+      .send({ email: DEFAULT_USER.email });
+
+    const userBeforePasswordUpdate = await usersCollection.findOne({
+      email: DEFAULT_USER.email,
+    });
+    const hashBeforePasswordUpdate = userBeforePasswordUpdate!.passwordHash;
+    const recoveryCode = userBeforePasswordUpdate!.passwordRecovery!.code;
+
+    const newPassword = 'newpassword123';
+
+    const response = await request(app)
+      .post('/auth/new-password')
+      .send({ newPassword, recoveryCode });
+
+    expect(response.status).toBe(204);
+
+    const userAfterPasswordUpdate = await usersCollection.findOne({
+      email: DEFAULT_USER.email,
+    });
+    expect(userAfterPasswordUpdate!.passwordHash).not.toBe(
+      hashBeforePasswordUpdate,
+    );
+    expect(userAfterPasswordUpdate).not.toHaveProperty('passwordRecovery');
+
+    const oldPasswordLogin = await login(
+      DEFAULT_USER.login,
+      DEFAULT_USER.password,
+    );
+    expect(oldPasswordLogin.status).toBe(401);
+
+    const newPasswordLogin = await login(DEFAULT_USER.login, newPassword);
+    expect(newPasswordLogin.status).toBe(200);
+  });
+
+  it('should return 400 when the recovery code is reused', async () => {
+    await createConfirmedUser();
+
+    await request(app)
+      .post('/auth/password-recovery')
+      .send({ email: DEFAULT_USER.email });
+
+    const user = await usersCollection.findOne({ email: DEFAULT_USER.email });
+    const recoveryCode = user!.passwordRecovery!.code;
+
+    const firstResponse = await request(app)
+      .post('/auth/new-password')
+      .send({ newPassword: 'newpassword123', recoveryCode });
+
+    expect(firstResponse.status).toBe(204);
+
+    const secondResponse = await request(app)
+      .post('/auth/new-password')
+      .send({ newPassword: 'secondnewpassword123', recoveryCode });
+
+    expect(secondResponse.status).toBe(400);
+    expect(secondResponse.body.errorsMessages[0].field).toBe('recoveryCode');
+
+    const loginWithFirstPassword = await login(
+      DEFAULT_USER.login,
+      'newpassword123',
+    );
+    expect(loginWithFirstPassword.status).toBe(200);
+  });
+
+  it('should return 400 for an expired recovery code', async () => {
+    await createConfirmedUser();
+
+    await request(app)
+      .post('/auth/password-recovery')
+      .send({ email: DEFAULT_USER.email });
+
+    const user = await usersCollection.findOne({ email: DEFAULT_USER.email });
+    const recoveryCode = user!.passwordRecovery!.code;
+
+    await usersCollection.updateOne(
+      { email: DEFAULT_USER.email },
+      { $set: { 'passwordRecovery.expiresAt': new Date(Date.now() - 1000) } },
+    );
+
+    const response = await request(app)
+      .post('/auth/new-password')
+      .send({ newPassword: 'newpassword123', recoveryCode });
+
+    expect(response.status).toBe(400);
+    expect(response.body.errorsMessages[0].field).toBe('recoveryCode');
   });
 });

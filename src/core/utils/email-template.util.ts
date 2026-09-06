@@ -9,4 +9,13 @@ export const emailTemplate = {
                 <p>Confirmation code: <b>${code}</b></p>
             </div>
         `,
+
+  passwordRecovery: (code: string) =>
+    `
+            <div>
+                <h1>Password recovery</h1>
+                <a href='${config.appUrl}/password-recovery?recoveryCode=${code}'>Recover password</a>
+                <p>Recovery code: <b>${code}</b></p>
+            </div>
+        `,
 };

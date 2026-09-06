@@ -1,7 +1,7 @@
 import request from 'supertest';
 import { app } from './test-setup-app';
 import { usersCollection } from '../../src/db/db';
-import { bcryptService } from '../../src/core/services/bcrypt.service';
+import { bcryptService } from '../../src/composition-root';
 import { REFRESH_TOKEN_COOKIE } from '../../src/auth/auth.constants';
 import { config } from '../../src/core/config';
 import { randomUUID } from 'crypto';

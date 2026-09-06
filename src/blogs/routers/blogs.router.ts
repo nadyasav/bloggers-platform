@@ -1,29 +1,28 @@
 import { Router } from 'express';
-import { getBlogsHandler } from './handlers/get-blogs.handler';
-import { getBlogByIdHandler } from './handlers/get-blog.handler';
-import { createBlogHandler } from './handlers/create-blog.handler';
-import { updateBlogHandler } from './handlers/update-blog.handler';
-import { deleteBlogHandler } from './handlers/delete-blog.handler';
 import { blogValidation } from '../validation/blog.validation';
 import { validationResultMiddleware } from '../../core/middlewares/validation-result.middleware';
 import { basicAuthMiddleware } from '../../core/middlewares/auth/basic-auth.middleware';
 import { idParamValidation } from '../../core/validation/id-param.validation';
 import { blogQueryValidation } from '../validation/blog-query.validation';
-import { getBlogPostsHandler } from './handlers/get-blog-posts.handler';
 import { postQueryValidation } from '../../posts/validation/post-query.validation';
-import { createBlogPostHandler } from './handlers/create-blog-post.handler';
 import { blogPostValidation } from '../../posts/validation/post.validation';
+import { blogsController } from '../../composition-root';
 
 export const blogsRouter = Router();
 
 blogsRouter
-  .get('', blogQueryValidation, validationResultMiddleware, getBlogsHandler)
+  .get(
+    '',
+    blogQueryValidation,
+    validationResultMiddleware,
+    blogsController.getBlogsHandler.bind(blogsController),
+  )
 
   .get(
     '/:id',
     idParamValidation,
     validationResultMiddleware,
-    getBlogByIdHandler,
+    blogsController.getBlogByIdHandler.bind(blogsController),
   )
 
   .get(
@@ -31,7 +30,7 @@ blogsRouter
     idParamValidation,
     postQueryValidation,
     validationResultMiddleware,
-    getBlogPostsHandler,
+    blogsController.getBlogPostsHandler.bind(blogsController),
   )
 
   .post(
@@ -39,7 +38,7 @@ blogsRouter
     basicAuthMiddleware,
     blogValidation,
     validationResultMiddleware,
-    createBlogHandler,
+    blogsController.createBlogHandler.bind(blogsController),
   )
 
   .post(
@@ -48,7 +47,7 @@ blogsRouter
     idParamValidation,
     blogPostValidation,
     validationResultMiddleware,
-    createBlogPostHandler,
+    blogsController.createBlogPostHandler.bind(blogsController),
   )
 
   .put(
@@ -57,7 +56,7 @@ blogsRouter
     idParamValidation,
     blogValidation,
     validationResultMiddleware,
-    updateBlogHandler,
+    blogsController.updateBlogHandler.bind(blogsController),
   )
 
   .delete(
@@ -65,5 +64,5 @@ blogsRouter
     basicAuthMiddleware,
     idParamValidation,
     validationResultMiddleware,
-    deleteBlogHandler,
+    blogsController.deleteBlogHandler.bind(blogsController),
   );

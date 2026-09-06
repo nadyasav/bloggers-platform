@@ -2,11 +2,9 @@ import { Router } from 'express';
 import { basicAuthMiddleware } from '../../core/middlewares/auth/basic-auth.middleware';
 import { userValidation } from '../validation/user.validation';
 import { validationResultMiddleware } from '../../core/middlewares/validation-result.middleware';
-import { createUserHandler } from './handlers/create-user.handler';
 import { idParamValidation } from '../../core/validation/id-param.validation';
-import { deleteUserHandler } from './handlers/delete-user.handler';
 import { userQueryValidation } from '../validation/user-query.validation';
-import { getUsersHandler } from './handlers/get-users.handler';
+import { usersController } from '../../composition-root';
 
 export const usersRouter = Router();
 
@@ -16,7 +14,7 @@ usersRouter
     basicAuthMiddleware,
     userQueryValidation,
     validationResultMiddleware,
-    getUsersHandler,
+    usersController.getUsersHandler.bind(usersController),
   )
 
   .post(
@@ -24,7 +22,7 @@ usersRouter
     basicAuthMiddleware,
     userValidation,
     validationResultMiddleware,
-    createUserHandler,
+    usersController.createUserHandler.bind(usersController),
   )
 
   .delete(
@@ -32,5 +30,5 @@ usersRouter
     basicAuthMiddleware,
     idParamValidation,
     validationResultMiddleware,
-    deleteUserHandler,
+    usersController.deleteUserHandler.bind(usersController),
   );
