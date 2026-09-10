@@ -1,8 +1,10 @@
 import { ObjectId, WithId } from 'mongodb';
+import { injectable } from 'inversify';
 import { commentsCollection } from '../../db/db';
 import { CommentDb } from '../types/comment.types';
 import { CommentQueryDto } from '../dto/comment-query.dto';
 
+@injectable()
 export class CommentsQueryRepository {
   async getById(id: string): Promise<WithId<CommentDb> | null> {
     return commentsCollection.findOne({ _id: new ObjectId(id) });

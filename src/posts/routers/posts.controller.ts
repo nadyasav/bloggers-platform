@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { matchedData } from 'express-validator';
+import { inject, injectable } from 'inversify';
 import { PostsService } from '../application/posts.service';
 import { PostsQueryRepository } from '../repositories/posts.query-repository';
 import { PostQueryDto } from '../dto/post-query.dto';
@@ -17,6 +18,7 @@ import { ResultStatus } from '../../core/types/result.types';
 import { resultToErrorResponse } from '../../core/utils/result-status.util';
 import { CommentInputDto } from '../../comments/dto/comment-input.dto';
 
+@injectable()
 export class PostsController {
   private postsService: PostsService;
   private postsQueryRepository: PostsQueryRepository;
@@ -24,9 +26,10 @@ export class PostsController {
   private commentsQueryRepository: CommentsQueryRepository;
 
   constructor(
-    postsService: PostsService,
-    postsQueryRepository: PostsQueryRepository,
-    commentsService: CommentsService,
+    @inject(PostsService) postsService: PostsService,
+    @inject(PostsQueryRepository) postsQueryRepository: PostsQueryRepository,
+    @inject(CommentsService) commentsService: CommentsService,
+    @inject(CommentsQueryRepository)
     commentsQueryRepository: CommentsQueryRepository,
   ) {
     this.postsService = postsService;

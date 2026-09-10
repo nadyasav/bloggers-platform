@@ -1,3 +1,4 @@
+import { inject, injectable } from 'inversify';
 import { BcryptService } from '../../core/services/bcrypt.service';
 import { Result, ResultStatus } from '../../core/types/result.types';
 import { UsersRepository } from '../../users/repositories/users.repository';
@@ -18,6 +19,7 @@ import { SecurityRepository } from '../../security/repositories/security.reposit
 import { PasswordRecoveryInputDto } from '../dto/password-recovery-input.dto';
 import { NewPasswordInputDto } from '../dto/new-password-input.dto';
 
+@injectable()
 export class AuthService {
   private usersRepository: UsersRepository;
   private usersService: UsersService;
@@ -28,13 +30,13 @@ export class AuthService {
   private nodemailerService: NodemailerService;
 
   constructor(
-    usersRepository: UsersRepository,
-    usersService: UsersService,
-    authRepository: AuthRepository,
-    securityRepository: SecurityRepository,
-    bcryptService: BcryptService,
-    jwtService: JwtService,
-    nodemailerService: NodemailerService,
+    @inject(UsersRepository) usersRepository: UsersRepository,
+    @inject(UsersService) usersService: UsersService,
+    @inject(AuthRepository) authRepository: AuthRepository,
+    @inject(SecurityRepository) securityRepository: SecurityRepository,
+    @inject(BcryptService) bcryptService: BcryptService,
+    @inject(JwtService) jwtService: JwtService,
+    @inject(NodemailerService) nodemailerService: NodemailerService,
   ) {
     this.usersRepository = usersRepository;
     this.usersService = usersService;

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { matchedData } from 'express-validator';
+import { inject, injectable } from 'inversify';
 import { BlogsService } from '../application/blogs.service';
 import { BlogPostInputDto } from '../../posts/dto/blog-post-input.dto';
 import { PostsService } from '../../posts/application/posts.service';
@@ -12,11 +13,15 @@ import { BLOG_NOT_FOUND } from '../blog.constants';
 import { PostQueryDto } from '../../posts/dto/post-query.dto';
 import { BlogInputDto } from '../dto/blog-input.dto';
 
+@injectable()
 export class BlogsController {
   private blogsService: BlogsService;
   private postsService: PostsService;
 
-  constructor(blogsService: BlogsService, postsService: PostsService) {
+  constructor(
+    @inject(BlogsService) blogsService: BlogsService,
+    @inject(PostsService) postsService: PostsService,
+  ) {
     this.blogsService = blogsService;
     this.postsService = postsService;
   }

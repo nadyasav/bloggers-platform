@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { inject, injectable } from 'inversify';
 import { AuthService } from '../application/auth.service';
 import { UsersQueryRepository } from '../../users/repositories/users.query-repository';
 import { DEFAULT_DEVICE_NAME, REFRESH_TOKEN_COOKIE } from '../auth.constants';
@@ -13,13 +14,14 @@ import { RegistrationConfirmationInputDto } from '../dto/registration-confirmati
 import { EmailResendingInputDto } from '../dto/email-resending-input.dto';
 import { mapUserDbToMeView } from './mappers/userdb-to-me-view.mapper';
 
+@injectable()
 export class AuthController {
   private authService: AuthService;
   private usersQueryRepository: UsersQueryRepository;
 
   constructor(
-    authService: AuthService,
-    usersQueryRepository: UsersQueryRepository,
+    @inject(AuthService) authService: AuthService,
+    @inject(UsersQueryRepository) usersQueryRepository: UsersQueryRepository,
   ) {
     this.authService = authService;
     this.usersQueryRepository = usersQueryRepository;

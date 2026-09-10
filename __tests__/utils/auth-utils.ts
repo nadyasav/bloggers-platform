@@ -1,10 +1,13 @@
 import request from 'supertest';
 import { app } from './test-setup-app';
 import { usersCollection } from '../../src/db/db';
-import { bcryptService } from '../../src/composition-root';
+import { container } from '../../src/composition-root';
+import { BcryptService } from '../../src/core/services/bcrypt.service';
 import { REFRESH_TOKEN_COOKIE } from '../../src/auth/auth.constants';
 import { config } from '../../src/core/config';
 import { randomUUID } from 'crypto';
+
+const bcryptService = container.get(BcryptService);
 
 export const DEFAULT_USER = {
   login: 'testuser',

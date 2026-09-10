@@ -1,7 +1,9 @@
 import jwt, { Algorithm, JwtPayload, SignOptions } from 'jsonwebtoken';
+import { injectable } from 'inversify';
 
 const ALGORITHM: Algorithm = 'HS256';
 
+@injectable()
 export class JwtService {
   createToken(
     payload: Record<string, unknown>,

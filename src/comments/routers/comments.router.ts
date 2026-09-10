@@ -2,10 +2,12 @@ import { Router } from 'express';
 import { idParamValidation } from '../../core/validation/id-param.validation';
 import { validationResultMiddleware } from '../../core/middlewares/validation-result.middleware';
 import { commentValidation } from '../validation/comment.validation';
-import {
-  bearerAuthMiddleware,
-  commentsController,
-} from '../../composition-root';
+import { container } from '../../composition-root';
+import { BearerAuthMiddleware } from '../../core/middlewares/auth/bearer-auth.middleware';
+import { CommentsController } from './comments.controller';
+
+const bearerAuthMiddleware = container.get(BearerAuthMiddleware);
+const commentsController = container.get(CommentsController);
 
 export const commentsRouter = Router();
 

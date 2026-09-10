@@ -1,8 +1,10 @@
 import { ObjectId, WithId } from 'mongodb';
+import { injectable } from 'inversify';
 import { UserDb } from '../types/user.types';
 import { usersCollection } from '../../db/db';
 import { UserQueryDto } from '../dto/user-query.dto';
 
+@injectable()
 export class UsersQueryRepository {
   async getAll(
     query: UserQueryDto,

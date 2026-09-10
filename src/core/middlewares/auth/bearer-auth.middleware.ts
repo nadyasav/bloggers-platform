@@ -1,11 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
+import { inject, injectable } from 'inversify';
 import { JwtService } from '../../services/jwt.service';
 import { config } from '../../config';
 
+@injectable()
 export class BearerAuthMiddleware {
   private jwtService: JwtService;
 
-  constructor(jwtService: JwtService) {
+  constructor(@inject(JwtService) jwtService: JwtService) {
     this.jwtService = jwtService;
   }
 

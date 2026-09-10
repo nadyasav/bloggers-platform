@@ -7,12 +7,16 @@ import { emailResendingValidation } from '../validation/email-resending.validati
 import { AUTH_BASE_PATH, AUTH_PATHS, RATE_LIMIT } from '../auth.constants';
 import { passwordRecoveryValidation } from '../validation/password-recovery.validation';
 import { newPasswordValidation } from '../validation/new-password.validation';
-import {
-  authController,
-  bearerAuthMiddleware,
-  rateLimit,
-  refreshTokenAuthMiddleware,
-} from '../../composition-root';
+import { container } from '../../composition-root';
+import { AuthController } from './auth.controller';
+import { BearerAuthMiddleware } from '../../core/middlewares/auth/bearer-auth.middleware';
+import { RateLimit } from '../../core/middlewares/rate-limit.middleware';
+import { RefreshTokenAuthMiddleware } from '../middlewares/refresh-token-auth.middleware';
+
+const authController = container.get(AuthController);
+const bearerAuthMiddleware = container.get(BearerAuthMiddleware);
+const rateLimit = container.get(RateLimit);
+const refreshTokenAuthMiddleware = container.get(RefreshTokenAuthMiddleware);
 
 export const authRouter = Router();
 

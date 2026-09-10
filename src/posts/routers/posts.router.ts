@@ -6,7 +6,12 @@ import { idParamValidation } from '../../core/validation/id-param.validation';
 import { postQueryValidation } from '../validation/post-query.validation';
 import { commentValidation } from '../../comments/validation/comment.validation';
 import { commentQueryValidation } from '../../comments/validation/comment-query.validation';
-import { bearerAuthMiddleware, postsController } from '../../composition-root';
+import { container } from '../../composition-root';
+import { BearerAuthMiddleware } from '../../core/middlewares/auth/bearer-auth.middleware';
+import { PostsController } from './posts.controller';
+
+const bearerAuthMiddleware = container.get(BearerAuthMiddleware);
+const postsController = container.get(PostsController);
 
 export const postsRouter = Router();
 

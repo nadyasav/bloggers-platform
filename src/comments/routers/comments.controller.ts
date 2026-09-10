@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { inject, injectable } from 'inversify';
 import { CommentsService } from '../application/comments.service';
 import { CommentsQueryRepository } from '../repositories/comments.query-repository';
 import { COMMENT_ERRORS } from '../comment.constants';
@@ -7,12 +8,14 @@ import { CommentInputDto } from '../dto/comment-input.dto';
 import { ResultStatus } from '../../core/types/result.types';
 import { resultToErrorResponse } from '../../core/utils/result-status.util';
 
+@injectable()
 export class CommentsController {
   private commentsService: CommentsService;
   private commentsQueryRepository: CommentsQueryRepository;
 
   constructor(
-    commentsService: CommentsService,
+    @inject(CommentsService) commentsService: CommentsService,
+    @inject(CommentsQueryRepository)
     commentsQueryRepository: CommentsQueryRepository,
   ) {
     this.commentsService = commentsService;

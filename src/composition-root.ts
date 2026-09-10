@@ -1,3 +1,4 @@
+import { Container } from 'inversify';
 import { UsersRepository } from './users/repositories/users.repository';
 import { UsersQueryRepository } from './users/repositories/users.query-repository';
 import { UsersService } from './users/application/users.service';
@@ -28,71 +29,38 @@ import { CommentsQueryRepository } from './comments/repositories/comments.query-
 import { CommentsService } from './comments/application/comments.service';
 import { CommentsController } from './comments/routers/comments.controller';
 
-export const bcryptService = new BcryptService();
-export const jwtService = new JwtService();
-export const nodemailerService = new NodemailerService();
+export const container = new Container();
 
-export const usersRepository = new UsersRepository();
-export const usersQueryRepository = new UsersQueryRepository();
-export const securityRepository = new SecurityRepository();
-export const securityQueryRepository = new SecurityQueryRepository();
-export const authRepository = new AuthRepository();
-export const rateLimitRepository = new RateLimitRepository();
-export const blogsRepository = new BlogsRepository();
-export const postsRepository = new PostsRepository();
-export const postsQueryRepository = new PostsQueryRepository();
-export const commentsRepository = new CommentsRepository();
-export const commentsQueryRepository = new CommentsQueryRepository();
+container.bind(BcryptService).toSelf();
+container.bind(JwtService).toSelf();
+container.bind(NodemailerService).toSelf();
 
-export const usersService = new UsersService(usersRepository, bcryptService);
-export const securityService = new SecurityService(securityRepository);
-export const authService = new AuthService(
-  usersRepository,
-  usersService,
-  authRepository,
-  securityRepository,
-  bcryptService,
-  jwtService,
-  nodemailerService,
-);
-export const commentsService = new CommentsService(
-  commentsRepository,
-  postsRepository,
-  usersRepository,
-);
-export const postsService = new PostsService(
-  postsRepository,
-  blogsRepository,
-  commentsService,
-);
-export const blogsService = new BlogsService(blogsRepository, postsService);
+container.bind(UsersRepository).toSelf();
+container.bind(UsersQueryRepository).toSelf();
+container.bind(SecurityRepository).toSelf();
+container.bind(SecurityQueryRepository).toSelf();
+container.bind(AuthRepository).toSelf();
+container.bind(RateLimitRepository).toSelf();
+container.bind(BlogsRepository).toSelf();
+container.bind(PostsRepository).toSelf();
+container.bind(PostsQueryRepository).toSelf();
+container.bind(CommentsRepository).toSelf();
+container.bind(CommentsQueryRepository).toSelf();
 
-export const bearerAuthMiddleware = new BearerAuthMiddleware(jwtService);
-export const rateLimit = new RateLimit(rateLimitRepository);
-export const refreshTokenAuthMiddleware = new RefreshTokenAuthMiddleware(
-  authService,
-);
+container.bind(UsersService).toSelf();
+container.bind(SecurityService).toSelf();
+container.bind(AuthService).toSelf();
+container.bind(CommentsService).toSelf();
+container.bind(PostsService).toSelf();
+container.bind(BlogsService).toSelf();
 
-export const usersController = new UsersController(
-  usersService,
-  usersQueryRepository,
-);
-export const securityController = new SecurityController(
-  securityService,
-  securityQueryRepository,
-);
-export const authController = new AuthController(
-  authService,
-  usersQueryRepository,
-);
-export const blogsController = new BlogsController(blogsService, postsService);
-export const postsController = new PostsController(
-  postsService,
-  postsQueryRepository,
-  commentsService,
-  commentsQueryRepository,
-);
-export const commentsController = new CommentsController(
-  commentsService,
-  commentsQueryRepository,
-);
+container.bind(BearerAuthMiddleware).toSelf();
+container.bind(RateLimit).toSelf();
+container.bind(RefreshTokenAuthMiddleware).toSelf();
+
+container.bind(UsersController).toSelf();
+container.bind(SecurityController).toSelf();
+container.bind(AuthController).toSelf();
+container.bind(BlogsController).toSelf();
+container.bind(PostsController).toSelf();
+container.bind(CommentsController).toSelf();

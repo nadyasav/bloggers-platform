@@ -1,9 +1,11 @@
+import { injectable } from 'inversify';
 import { commentsCollection } from '../../db/db';
 import { CommentDb } from '../types/comment.types';
 import { ClientSession, ObjectId, WithId } from 'mongodb';
 import { COMMENT_ERRORS } from '../comment.constants';
 import { CommentInputDto } from '../dto/comment-input.dto';
 
+@injectable()
 export class CommentsRepository {
   async create(
     dto: CommentInputDto,

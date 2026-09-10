@@ -1,10 +1,14 @@
+import { inject, injectable } from 'inversify';
 import { Result, ResultStatus } from '../../core/types/result.types';
 import { SecurityRepository } from '../repositories/security.repository';
 
+@injectable()
 export class SecurityService {
   private securityRepository: SecurityRepository;
 
-  constructor(securityRepository: SecurityRepository) {
+  constructor(
+    @inject(SecurityRepository) securityRepository: SecurityRepository,
+  ) {
     this.securityRepository = securityRepository;
   }
 

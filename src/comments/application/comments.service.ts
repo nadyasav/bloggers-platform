@@ -1,3 +1,4 @@
+import { inject, injectable } from 'inversify';
 import { Result, ResultStatus } from '../../core/types/result.types';
 import { PostsRepository } from '../../posts/repositories/posts.repository';
 import { UsersRepository } from '../../users/repositories/users.repository';
@@ -6,15 +7,16 @@ import { COMMENT_ERRORS } from '../comment.constants';
 import { ClientSession } from 'mongodb';
 import { CommentInputDto } from '../dto/comment-input.dto';
 
+@injectable()
 export class CommentsService {
   private commentsRepository: CommentsRepository;
   private postsRepository: PostsRepository;
   private usersRepository: UsersRepository;
 
   constructor(
-    commentsRepository: CommentsRepository,
-    postsRepository: PostsRepository,
-    usersRepository: UsersRepository,
+    @inject(CommentsRepository) commentsRepository: CommentsRepository,
+    @inject(PostsRepository) postsRepository: PostsRepository,
+    @inject(UsersRepository) usersRepository: UsersRepository,
   ) {
     this.commentsRepository = commentsRepository;
     this.postsRepository = postsRepository;

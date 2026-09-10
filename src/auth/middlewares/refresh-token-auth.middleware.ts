@@ -1,12 +1,14 @@
 import { NextFunction, Request, Response } from 'express';
+import { inject, injectable } from 'inversify';
 import { REFRESH_TOKEN_COOKIE } from '../auth.constants';
 import { AuthService } from '../application/auth.service';
 import { ResultStatus } from '../../core/types/result.types';
 
+@injectable()
 export class RefreshTokenAuthMiddleware {
   private authService: AuthService;
 
-  constructor(authService: AuthService) {
+  constructor(@inject(AuthService) authService: AuthService) {
     this.authService = authService;
   }
 

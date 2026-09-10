@@ -4,7 +4,10 @@ import { userValidation } from '../validation/user.validation';
 import { validationResultMiddleware } from '../../core/middlewares/validation-result.middleware';
 import { idParamValidation } from '../../core/validation/id-param.validation';
 import { userQueryValidation } from '../validation/user-query.validation';
-import { usersController } from '../../composition-root';
+import { container } from '../../composition-root';
+import { UsersController } from './users.controller';
+
+const usersController = container.get(UsersController);
 
 export const usersRouter = Router();
 

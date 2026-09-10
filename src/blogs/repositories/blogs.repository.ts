@@ -1,3 +1,4 @@
+import { injectable } from 'inversify';
 import { BlogInputDto } from '../dto/blog-input.dto';
 import { BlogDb } from '../types/blog.types';
 import { BlogNotFoundError } from '../errors/blog-not-found.error';
@@ -5,6 +6,7 @@ import { ClientSession, ObjectId, WithId } from 'mongodb';
 import { blogsCollection } from '../../db/db';
 import { BlogQueryDto } from '../dto/blog-query.dto';
 
+@injectable()
 export class BlogsRepository {
   async getAll(
     query: BlogQueryDto,

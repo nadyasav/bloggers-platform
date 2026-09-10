@@ -1,11 +1,15 @@
 import { NextFunction, Request, Response } from 'express';
+import { inject, injectable } from 'inversify';
 import { RateLimitRepository } from '../repositories/rate-limit.repository';
 import { DEFAULT_IP } from '../core.constants';
 
+@injectable()
 export class RateLimit {
   private rateLimitRepository: RateLimitRepository;
 
-  constructor(rateLimitRepository: RateLimitRepository) {
+  constructor(
+    @inject(RateLimitRepository) rateLimitRepository: RateLimitRepository,
+  ) {
     this.rateLimitRepository = rateLimitRepository;
   }
 
