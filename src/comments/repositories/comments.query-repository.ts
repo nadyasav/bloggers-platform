@@ -1,13 +1,13 @@
-import { ObjectId, WithId } from 'mongodb';
+import { WithId } from 'mongodb';
 import { injectable } from 'inversify';
-import { commentsCollection } from '../../db/db';
+import { CommentModel } from '../domain/comment.entity';
 import { CommentDb } from '../types/comment.types';
 import { CommentQueryDto } from '../dto/comment-query.dto';
 
 @injectable()
 export class CommentsQueryRepository {
   async getById(id: string): Promise<WithId<CommentDb> | null> {
-    return commentsCollection.findOne({ _id: new ObjectId(id) });
+    return CommentModel.findOne({ _id: id }).lean();
   }
 
   async getByPostId(
@@ -16,13 +16,12 @@ export class CommentsQueryRepository {
   ): Promise<{ comments: WithId<CommentDb>[]; totalCount: number }> {
     const skipCount = (query.pageNumber - 1) * query.pageSize;
 
-    const totalCount = await commentsCollection.countDocuments({ postId });
-    const comments = await commentsCollection
-      .find({ postId })
+    const totalCount = await CommentModel.countDocuments({ postId });
+    const comments = await CommentModel.find({ postId })
       .sort({ [query.sortBy]: query.sortDirection })
       .skip(skipCount)
       .limit(query.pageSize)
-      .toArray();
+      .lean();
 
     return { comments, totalCount };
   }

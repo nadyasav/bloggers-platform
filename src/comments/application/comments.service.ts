@@ -6,6 +6,7 @@ import { CommentsRepository } from '../repositories/comments.repository';
 import { COMMENT_ERRORS } from '../comment.constants';
 import { ClientSession } from 'mongodb';
 import { CommentInputDto } from '../dto/comment-input.dto';
+import { CommentModel } from '../domain/comment.entity';
 
 @injectable()
 export class CommentsService {
@@ -45,14 +46,20 @@ export class CommentsService {
       };
     }
 
-    const id = await this.commentsRepository.create(
-      dto,
+    const comment = new CommentModel({
+      content: dto.content,
       postId,
-      userId,
-      user.login,
-    );
+      commentatorInfo: { userId, userLogin: user.login },
+      createdAt: new Date(),
+    });
 
-    return { status: ResultStatus.Success, extensions: [], data: id };
+    await this.commentsRepository.save(comment);
+
+    return {
+      status: ResultStatus.Success,
+      extensions: [],
+      data: comment._id.toString(),
+    };
   }
 
   async update(
@@ -86,7 +93,9 @@ export class CommentsService {
       };
     }
 
-    await this.commentsRepository.update(id, dto);
+    comment.content = dto.content;
+
+    await this.commentsRepository.save(comment);
 
     return { status: ResultStatus.Success, extensions: [], data: null };
   }

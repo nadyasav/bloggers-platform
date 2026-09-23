@@ -1,4 +1,5 @@
 import { Collection, Db, MongoClient } from 'mongodb';
+import mongoose from 'mongoose';
 import { BlogDb } from '../blogs/types/blog.types';
 import { PostDb } from '../posts/types/post.types';
 import { UserDb } from '../users/types/user.types';
@@ -26,19 +27,23 @@ export let rateLimitCollection: Collection<ApiRequestDb>;
 export const connectToDb = async (
   url: string = config.mongodbUrl,
 ): Promise<void> => {
-  client = new MongoClient(url);
-  const db: Db = client.db(DB_NAME);
-
-  blogsCollection = db.collection<BlogDb>(BLOGS_COLLECTION_NAME);
-  postsCollection = db.collection<PostDb>(POSTS_COLLECTION_NAME);
-  usersCollection = db.collection<UserDb>(USERS_COLLECTION_NAME);
-  commentsCollection = db.collection<CommentDb>(COMMENTS_COLLECTION_NAME);
-  sessionsCollection = db.collection<DeviceSessionDb>(SESSIONS_COLLECTION_NAME);
-  rateLimitCollection = db.collection<ApiRequestDb>(RATE_LIMIT_COLLECTION_NAME);
-
   try {
-    await client.connect();
-    await db.command({ ping: 1 });
+    await mongoose.connect(url, { dbName: DB_NAME });
+
+    client = mongoose.connection.getClient();
+    const db: Db = client.db(DB_NAME);
+
+    blogsCollection = db.collection<BlogDb>(BLOGS_COLLECTION_NAME);
+    postsCollection = db.collection<PostDb>(POSTS_COLLECTION_NAME);
+    usersCollection = db.collection<UserDb>(USERS_COLLECTION_NAME);
+    commentsCollection = db.collection<CommentDb>(COMMENTS_COLLECTION_NAME);
+    sessionsCollection = db.collection<DeviceSessionDb>(
+      SESSIONS_COLLECTION_NAME,
+    );
+    rateLimitCollection = db.collection<ApiRequestDb>(
+      RATE_LIMIT_COLLECTION_NAME,
+    );
+
     await sessionsCollection.createIndex(
       { expiresAt: 1 },
       { expireAfterSeconds: 0 },
@@ -53,7 +58,7 @@ export const connectToDb = async (
 
     console.log('Connected to database');
   } catch (error) {
-    await client.close();
+    await mongoose.disconnect();
     throw new Error(`Failed to connect to database: ${error}`);
   }
 };
