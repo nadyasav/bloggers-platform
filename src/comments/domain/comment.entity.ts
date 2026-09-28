@@ -14,6 +14,10 @@ const commentSchema = new Schema<CommentDb>(
       userLogin: { type: String, required: true },
     },
     createdAt: { type: Date, required: true },
+    likesCounters: {
+      likesCount: { type: Number, required: true, default: 0 },
+      dislikesCount: { type: Number, required: true, default: 0 },
+    },
   },
   { versionKey: false },
 );

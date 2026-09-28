@@ -126,7 +126,11 @@ export class PostsController {
       includeOptionals: true,
     });
     const { comments, totalCount } =
-      await this.commentsQueryRepository.getByPostId(req.params.id, query);
+      await this.commentsQueryRepository.getByPostId(
+        req.params.id,
+        query,
+        req.userId,
+      );
     const paginatedComments = mapItemsToPaginated(
       comments.map(mapCommentDbToCommentView),
       totalCount,
@@ -151,7 +155,10 @@ export class PostsController {
       return res.status(error.code).send(error.body);
     }
 
-    const comment = await this.commentsQueryRepository.getById(result.data!);
+    const comment = await this.commentsQueryRepository.getById(
+      result.data!,
+      req.userId,
+    );
 
     if (!comment) {
       throw new Error();

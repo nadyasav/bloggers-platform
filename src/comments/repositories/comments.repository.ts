@@ -5,8 +5,8 @@ import { CommentDocument, CommentModel } from '../domain/comment.entity';
 
 @injectable()
 export class CommentsRepository {
-  async save(comment: CommentDocument): Promise<void> {
-    await comment.save();
+  async save(comment: CommentDocument, session?: ClientSession): Promise<void> {
+    await comment.save({ session });
   }
 
   async getById(id: string): Promise<CommentDocument | null> {

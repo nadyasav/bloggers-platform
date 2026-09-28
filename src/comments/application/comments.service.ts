@@ -7,21 +7,27 @@ import { COMMENT_ERRORS } from '../comment.constants';
 import { ClientSession } from 'mongodb';
 import { CommentInputDto } from '../dto/comment-input.dto';
 import { CommentModel } from '../domain/comment.entity';
+import { LikeInputDto } from '../../likes/dto/like-input.dto';
+import { LikesRepository } from '../../likes/repositories/likes.repository';
+import { client } from '../../db/db';
 
 @injectable()
 export class CommentsService {
   private commentsRepository: CommentsRepository;
   private postsRepository: PostsRepository;
   private usersRepository: UsersRepository;
+  private likesRepository: LikesRepository;
 
   constructor(
     @inject(CommentsRepository) commentsRepository: CommentsRepository,
     @inject(PostsRepository) postsRepository: PostsRepository,
     @inject(UsersRepository) usersRepository: UsersRepository,
+    @inject(LikesRepository) likesRepository: LikesRepository,
   ) {
     this.commentsRepository = commentsRepository;
     this.postsRepository = postsRepository;
     this.usersRepository = usersRepository;
+    this.likesRepository = likesRepository;
   }
 
   async create(
@@ -128,6 +134,53 @@ export class CommentsService {
     }
 
     await this.commentsRepository.delete(id);
+
+    return { status: ResultStatus.Success, extensions: [], data: null };
+  }
+
+  async updateLikeStatus(
+    id: string,
+    dto: LikeInputDto,
+    userId: string,
+  ): Promise<Result<null>> {
+    const user = await this.usersRepository.getById(userId);
+
+    if (!user) {
+      return { status: ResultStatus.Unauthorized, extensions: [], data: null };
+    }
+
+    const comment = await this.commentsRepository.getById(id);
+
+    if (!comment) {
+      return {
+        status: ResultStatus.NotFound,
+        errorMessage: COMMENT_ERRORS.NOT_FOUND,
+        extensions: [],
+        data: null,
+      };
+    }
+
+    const session = client.startSession();
+
+    try {
+      await session.withTransaction(async () => {
+        await this.likesRepository.updateStatus(
+          id,
+          userId,
+          dto.likeStatus,
+          session,
+        );
+
+        comment.likesCounters = await this.likesRepository.getCounters(
+          id,
+          session,
+        );
+
+        await this.commentsRepository.save(comment, session);
+      });
+    } finally {
+      await session.endSession();
+    }
 
     return { status: ResultStatus.Success, extensions: [], data: null };
   }

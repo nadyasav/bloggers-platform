@@ -28,6 +28,8 @@ import { CommentsRepository } from './comments/repositories/comments.repository'
 import { CommentsQueryRepository } from './comments/repositories/comments.query-repository';
 import { CommentsService } from './comments/application/comments.service';
 import { CommentsController } from './comments/routers/comments.controller';
+import { LikesRepository } from './likes/repositories/likes.repository';
+import { OptionalBearerAuthMiddleware } from './core/middlewares/auth/optional-bearer-auth.middleware';
 
 export const container = new Container();
 
@@ -46,6 +48,7 @@ container.bind(PostsRepository).toSelf();
 container.bind(PostsQueryRepository).toSelf();
 container.bind(CommentsRepository).toSelf();
 container.bind(CommentsQueryRepository).toSelf();
+container.bind(LikesRepository).toSelf();
 
 container.bind(UsersService).toSelf();
 container.bind(SecurityService).toSelf();
@@ -55,6 +58,7 @@ container.bind(PostsService).toSelf();
 container.bind(BlogsService).toSelf();
 
 container.bind(BearerAuthMiddleware).toSelf();
+container.bind(OptionalBearerAuthMiddleware).toSelf();
 container.bind(RateLimit).toSelf();
 container.bind(RefreshTokenAuthMiddleware).toSelf();
 

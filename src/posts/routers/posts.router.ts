@@ -9,8 +9,12 @@ import { commentQueryValidation } from '../../comments/validation/comment-query.
 import { container } from '../../composition-root';
 import { BearerAuthMiddleware } from '../../core/middlewares/auth/bearer-auth.middleware';
 import { PostsController } from './posts.controller';
+import { OptionalBearerAuthMiddleware } from '../../core/middlewares/auth/optional-bearer-auth.middleware';
 
 const bearerAuthMiddleware = container.get(BearerAuthMiddleware);
+const optionalBearerAuthMiddleware = container.get(
+  OptionalBearerAuthMiddleware,
+);
 const postsController = container.get(PostsController);
 
 export const postsRouter = Router();
@@ -57,6 +61,7 @@ postsRouter
 
   .get(
     '/:id/comments',
+    optionalBearerAuthMiddleware.handle.bind(optionalBearerAuthMiddleware),
     idParamValidation,
     commentQueryValidation,
     validationResultMiddleware,
