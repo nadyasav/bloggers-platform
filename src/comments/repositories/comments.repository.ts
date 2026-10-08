@@ -9,6 +9,24 @@ export class CommentsRepository {
     await comment.save({ session });
   }
 
+  async incrementLikesCounters(
+    id: string,
+    likesDelta: number,
+    dislikesDelta: number,
+    session?: ClientSession,
+  ): Promise<void> {
+    await CommentModel.updateOne(
+      { _id: id },
+      {
+        $inc: {
+          'likesCounters.likesCount': likesDelta,
+          'likesCounters.dislikesCount': dislikesDelta,
+        },
+      },
+      { session },
+    );
+  }
+
   async getById(id: string): Promise<CommentDocument | null> {
     return CommentModel.findOne({ _id: id });
   }

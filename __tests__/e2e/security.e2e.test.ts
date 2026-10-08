@@ -11,7 +11,7 @@ import { app } from '../utils/test-setup-app';
 import { connectToDb, client } from '../../src/db/db';
 import { DeviceSession } from '../../src/security/types/security.types';
 import {
-  DEFAULT_USER,
+  USERS,
   createConfirmedUser,
   login,
   getRefreshToken,
@@ -28,12 +28,6 @@ import {
 
 const USER_AGENTS = ['device-1', 'device-2', 'device-3', 'device-4'];
 
-const OTHER_USER = {
-  login: 'otheruser',
-  password: 'password123',
-  email: 'otheruser@test.com',
-};
-
 let mongoServer: MongoMemoryServer;
 
 async function loginDevices(
@@ -43,8 +37,8 @@ async function loginDevices(
 
   for (const userAgent of userAgents) {
     const response = await login(
-      DEFAULT_USER.login,
-      DEFAULT_USER.password,
+      USERS.first.login,
+      USERS.first.password,
       userAgent,
     );
 
@@ -112,13 +106,13 @@ describe('GET /security/devices', () => {
   });
 
   it('should return only sessions of the current user', async () => {
-    await createConfirmedUser(OTHER_USER);
+    await createConfirmedUser(USERS.second);
 
     const ownRefreshToken = getRefreshToken(
-      await login(DEFAULT_USER.login, DEFAULT_USER.password, USER_AGENTS[0]),
+      await login(USERS.first.login, USERS.first.password, USER_AGENTS[0]),
     );
 
-    await login(OTHER_USER.login, OTHER_USER.password, USER_AGENTS[1]);
+    await login(USERS.second.login, USERS.second.password, USER_AGENTS[1]);
 
     const ownDevices = await getDevices(ownRefreshToken);
 
@@ -240,13 +234,13 @@ describe('DELETE /security/devices/:deviceId', () => {
   });
 
   it('should return 403 when deleting a device of another user', async () => {
-    await createConfirmedUser(OTHER_USER);
+    await createConfirmedUser(USERS.second);
 
     const ownRefreshToken = getRefreshToken(
-      await login(DEFAULT_USER.login, DEFAULT_USER.password, USER_AGENTS[0]),
+      await login(USERS.first.login, USERS.first.password, USER_AGENTS[0]),
     );
     const otherRefreshToken = getRefreshToken(
-      await login(OTHER_USER.login, OTHER_USER.password, USER_AGENTS[1]),
+      await login(USERS.second.login, USERS.second.password, USER_AGENTS[1]),
     );
 
     const otherDevices = await getDevices(otherRefreshToken);
@@ -307,13 +301,13 @@ describe('DELETE /security/devices', () => {
   });
 
   it('should not delete sessions of other users', async () => {
-    await createConfirmedUser(OTHER_USER);
+    await createConfirmedUser(USERS.second);
 
     const ownRefreshToken = getRefreshToken(
-      await login(DEFAULT_USER.login, DEFAULT_USER.password, USER_AGENTS[0]),
+      await login(USERS.first.login, USERS.first.password, USER_AGENTS[0]),
     );
     const otherRefreshToken = getRefreshToken(
-      await login(OTHER_USER.login, OTHER_USER.password, USER_AGENTS[1]),
+      await login(USERS.second.login, USERS.second.password, USER_AGENTS[1]),
     );
 
     const otherDevices = await getDevices(otherRefreshToken);

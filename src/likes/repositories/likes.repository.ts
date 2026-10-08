@@ -1,38 +1,22 @@
 import { injectable } from 'inversify';
 import { LikeModel } from '../domain/like.entity';
-import { LikesCounters, LikeStatus } from '../types/like.types';
+import { LikeStatus } from '../types/like.types';
 import { ClientSession } from 'mongodb';
 
 @injectable()
 export class LikesRepository {
-  async updateStatus(
+  async updateAndGetPrevStatus(
     parentId: string,
     authorId: string,
     status: LikeStatus,
     session?: ClientSession,
-  ): Promise<void> {
-    await LikeModel.updateOne(
+  ): Promise<LikeStatus> {
+    const prevLike = await LikeModel.findOneAndUpdate(
       { parentId, authorId },
       { $set: { status }, $setOnInsert: { createdAt: new Date() } },
-      { upsert: true, session },
-    );
-  }
+      { upsert: true, returnDocument: 'before', session },
+    ).lean();
 
-  async getCounters(
-    parentId: string,
-    session?: ClientSession,
-  ): Promise<LikesCounters> {
-    const [likesCount, dislikesCount] = await Promise.all([
-      LikeModel.countDocuments(
-        { parentId, status: LikeStatus.Like },
-        { session },
-      ),
-      LikeModel.countDocuments(
-        { parentId, status: LikeStatus.Dislike },
-        { session },
-      ),
-    ]);
-
-    return { likesCount, dislikesCount };
+    return prevLike?.status ?? LikeStatus.None;
   }
 }

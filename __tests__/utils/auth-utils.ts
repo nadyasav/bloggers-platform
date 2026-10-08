@@ -9,11 +9,13 @@ import { randomUUID } from 'crypto';
 
 const bcryptService = container.get(BcryptService);
 
-export const DEFAULT_USER = {
-  login: 'testuser',
-  password: 'password123',
-  email: 'testuser@test.com',
+export const USERS = {
+  first: { login: 'user1', password: 'password123', email: 'user1@test.com' },
+  second: { login: 'user2', password: 'password123', email: 'user2@test.com' },
+  third: { login: 'user3', password: 'password123', email: 'user3@test.com' },
 };
+
+export const DEFAULT_USER = USERS.first;
 
 async function insertUserToDb(
   overrides: Partial<typeof DEFAULT_USER>,

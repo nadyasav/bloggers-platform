@@ -10,6 +10,7 @@ import { CommentModel } from '../domain/comment.entity';
 import { LikeInputDto } from '../../likes/dto/like-input.dto';
 import { LikesRepository } from '../../likes/repositories/likes.repository';
 import { client } from '../../db/db';
+import { LikeStatus } from '../../likes/types/like.types';
 
 @injectable()
 export class CommentsService {
@@ -164,19 +165,41 @@ export class CommentsService {
 
     try {
       await session.withTransaction(async () => {
-        await this.likesRepository.updateStatus(
-          id,
-          userId,
-          dto.likeStatus,
-          session,
-        );
+        const prevLikeStatus =
+          await this.likesRepository.updateAndGetPrevStatus(
+            id,
+            userId,
+            dto.likeStatus,
+            session,
+          );
 
-        comment.likesCounters = await this.likesRepository.getCounters(
-          id,
-          session,
-        );
+        let likesDelta = 0;
+        let dislikesDelta = 0;
 
-        await this.commentsRepository.save(comment, session);
+        if (prevLikeStatus === LikeStatus.Like) {
+          likesDelta -= 1;
+        }
+
+        if (prevLikeStatus === LikeStatus.Dislike) {
+          dislikesDelta -= 1;
+        }
+
+        if (dto.likeStatus === LikeStatus.Like) {
+          likesDelta += 1;
+        }
+
+        if (dto.likeStatus === LikeStatus.Dislike) {
+          dislikesDelta += 1;
+        }
+
+        if (likesDelta !== 0 || dislikesDelta !== 0) {
+          await this.commentsRepository.incrementLikesCounters(
+            id,
+            likesDelta,
+            dislikesDelta,
+            session,
+          );
+        }
       });
     } finally {
       await session.endSession();
