@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { inject, injectable } from 'inversify';
 import { CommentsService } from '../application/comments.service';
 import { CommentsQueryRepository } from '../repositories/comments.query-repository';
 import { COMMENT_ERRORS } from '../comment.constants';
@@ -6,13 +7,16 @@ import { mapCommentDbToCommentView } from './mappers/commentdb-to-comment.mapper
 import { CommentInputDto } from '../dto/comment-input.dto';
 import { ResultStatus } from '../../core/types/result.types';
 import { resultToErrorResponse } from '../../core/utils/result-status.util';
+import { LikeInputDto } from '../../likes/dto/like-input.dto';
 
+@injectable()
 export class CommentsController {
   private commentsService: CommentsService;
   private commentsQueryRepository: CommentsQueryRepository;
 
   constructor(
-    commentsService: CommentsService,
+    @inject(CommentsService) commentsService: CommentsService,
+    @inject(CommentsQueryRepository)
     commentsQueryRepository: CommentsQueryRepository,
   ) {
     this.commentsService = commentsService;
@@ -20,7 +24,10 @@ export class CommentsController {
   }
 
   async getCommentHandler(req: Request<{ id: string }>, res: Response) {
-    const comment = await this.commentsQueryRepository.getById(req.params.id);
+    const comment = await this.commentsQueryRepository.getById(
+      req.params.id,
+      req.userId,
+    );
 
     if (!comment) {
       return res.status(404).send({ message: COMMENT_ERRORS.NOT_FOUND });
@@ -34,6 +41,24 @@ export class CommentsController {
     res: Response,
   ) {
     const result = await this.commentsService.update(
+      req.params.id,
+      req.body,
+      req.userId as string,
+    );
+
+    if (result.status !== ResultStatus.Success) {
+      const error = resultToErrorResponse(result);
+      return res.status(error.code).send(error.body);
+    }
+
+    res.sendStatus(204);
+  }
+
+  async updateLikeStatusHandler(
+    req: Request<{ id: string }, {}, LikeInputDto>,
+    res: Response,
+  ) {
+    const result = await this.commentsService.updateLikeStatus(
       req.params.id,
       req.body,
       req.userId as string,

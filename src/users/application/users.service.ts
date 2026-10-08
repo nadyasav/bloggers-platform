@@ -1,3 +1,4 @@
+import { inject, injectable } from 'inversify';
 import { BcryptService } from '../../core/services/bcrypt.service';
 import { Result, ResultStatus } from '../../core/types/result.types';
 import { UserInputDto } from '../dto/user-input.dto';
@@ -6,11 +7,15 @@ import { UsersRepository } from '../repositories/users.repository';
 import { EmailConfirmation, UserDb } from '../types/user.types';
 import { UserAlreadyExistsError } from '../errors/user-already-exists.error';
 
+@injectable()
 export class UsersService {
   private usersRepository: UsersRepository;
   private bcryptService: BcryptService;
 
-  constructor(usersRepository: UsersRepository, bcryptService: BcryptService) {
+  constructor(
+    @inject(UsersRepository) usersRepository: UsersRepository,
+    @inject(BcryptService) bcryptService: BcryptService,
+  ) {
     this.usersRepository = usersRepository;
     this.bcryptService = bcryptService;
   }

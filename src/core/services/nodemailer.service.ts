@@ -1,9 +1,11 @@
 import nodemailer from 'nodemailer';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
+import { injectable } from 'inversify';
 import { config } from '../config';
 
 const SMTP_SSL_PORT = 465;
 
+@injectable()
 export class NodemailerService {
   async sendEmail(email: string, htmlTemplate: string) {
     const port = Number(config.email.port);

@@ -6,7 +6,10 @@ import { idParamValidation } from '../../core/validation/id-param.validation';
 import { blogQueryValidation } from '../validation/blog-query.validation';
 import { postQueryValidation } from '../../posts/validation/post-query.validation';
 import { blogPostValidation } from '../../posts/validation/post.validation';
-import { blogsController } from '../../composition-root';
+import { container } from '../../composition-root';
+import { BlogsController } from './blogs.controller';
+
+const blogsController = container.get(BlogsController);
 
 export const blogsRouter = Router();
 

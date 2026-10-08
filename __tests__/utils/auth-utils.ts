@@ -1,16 +1,21 @@
 import request from 'supertest';
 import { app } from './test-setup-app';
 import { usersCollection } from '../../src/db/db';
-import { bcryptService } from '../../src/composition-root';
+import { container } from '../../src/composition-root';
+import { BcryptService } from '../../src/core/services/bcrypt.service';
 import { REFRESH_TOKEN_COOKIE } from '../../src/auth/auth.constants';
 import { config } from '../../src/core/config';
 import { randomUUID } from 'crypto';
 
-export const DEFAULT_USER = {
-  login: 'testuser',
-  password: 'password123',
-  email: 'testuser@test.com',
+const bcryptService = container.get(BcryptService);
+
+export const USERS = {
+  first: { login: 'user1', password: 'password123', email: 'user1@test.com' },
+  second: { login: 'user2', password: 'password123', email: 'user2@test.com' },
+  third: { login: 'user3', password: 'password123', email: 'user3@test.com' },
 };
+
+export const DEFAULT_USER = USERS.first;
 
 async function insertUserToDb(
   overrides: Partial<typeof DEFAULT_USER>,

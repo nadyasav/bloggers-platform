@@ -4,7 +4,7 @@ import { JwtService } from '../../services/jwt.service';
 import { config } from '../../config';
 
 @injectable()
-export class BearerAuthMiddleware {
+export class OptionalBearerAuthMiddleware {
   private jwtService: JwtService;
 
   constructor(@inject(JwtService) jwtService: JwtService) {
@@ -15,7 +15,7 @@ export class BearerAuthMiddleware {
     const authHeader = req.headers['authorization'];
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).send({ message: 'Unauthorized' });
+      return next();
     }
 
     const [, token] = authHeader.split(' ');
@@ -24,11 +24,10 @@ export class BearerAuthMiddleware {
       config.accessTokenSecret,
     );
 
-    if (!payload) {
-      return res.status(401).send({ message: 'Unauthorized' });
+    if (payload) {
+      req.userId = payload.userId;
     }
 
-    req.userId = payload.userId;
     next();
   }
 }

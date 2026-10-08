@@ -1,3 +1,4 @@
+import { injectable } from 'inversify';
 import { PostInputDto } from '../dto/post-input.dto';
 import { PostQueryDto } from '../dto/post-query.dto';
 import { PostDb } from '../types/post.types';
@@ -5,6 +6,7 @@ import { ClientSession, ObjectId, WithId } from 'mongodb';
 import { postsCollection } from '../../db/db';
 import { PostNotFoundError } from '../errors/post-not-found.error';
 
+@injectable()
 export class PostsRepository {
   async getAll(
     query: PostQueryDto,

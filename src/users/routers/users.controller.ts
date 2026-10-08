@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { matchedData } from 'express-validator';
+import { inject, injectable } from 'inversify';
 import { UsersService } from '../application/users.service';
 import { UsersQueryRepository } from '../repositories/users.query-repository';
 import { UserInputDto } from '../dto/user-input.dto';
@@ -8,13 +9,14 @@ import { mapUserDbToUser } from './mappers/userdb-to-user.mapper';
 import { UserQueryDto } from '../dto/user-query.dto';
 import { mapItemsToPaginated } from '../../core/mappers/items-to-paginated.mapper';
 
+@injectable()
 export class UsersController {
   private usersService: UsersService;
   private usersQueryRepository: UsersQueryRepository;
 
   constructor(
-    usersService: UsersService,
-    usersQueryRepository: UsersQueryRepository,
+    @inject(UsersService) usersService: UsersService,
+    @inject(UsersQueryRepository) usersQueryRepository: UsersQueryRepository,
   ) {
     this.usersService = usersService;
     this.usersQueryRepository = usersQueryRepository;

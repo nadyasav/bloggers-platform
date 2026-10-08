@@ -1,3 +1,4 @@
+import { inject, injectable } from 'inversify';
 import { PostQueryDto } from '../dto/post-query.dto';
 import { PostsRepository } from '../repositories/posts.repository';
 import { PostDb } from '../types/post.types';
@@ -11,15 +12,16 @@ import { ClientSession } from 'mongodb';
 import { CommentsService } from '../../comments/application/comments.service';
 import { BlogsRepository } from '../../blogs/repositories/blogs.repository';
 
+@injectable()
 export class PostsService {
   private postsRepository: PostsRepository;
   private blogsRepository: BlogsRepository;
   private commentsService: CommentsService;
 
   constructor(
-    postsRepository: PostsRepository,
-    blogsRepository: BlogsRepository,
-    commentsService: CommentsService,
+    @inject(PostsRepository) postsRepository: PostsRepository,
+    @inject(BlogsRepository) blogsRepository: BlogsRepository,
+    @inject(CommentsService) commentsService: CommentsService,
   ) {
     this.postsRepository = postsRepository;
     this.blogsRepository = blogsRepository;

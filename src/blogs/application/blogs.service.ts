@@ -1,3 +1,4 @@
+import { inject, injectable } from 'inversify';
 import { BlogInputDto } from '../dto/blog-input.dto';
 import { BlogQueryDto } from '../dto/blog-query.dto';
 import { BlogsRepository } from '../repositories/blogs.repository';
@@ -7,11 +8,15 @@ import { client } from '../../db/db';
 import { BlogNotFoundError } from '../errors/blog-not-found.error';
 import { PostsService } from '../../posts/application/posts.service';
 
+@injectable()
 export class BlogsService {
   private blogsRepository: BlogsRepository;
   private postsService: PostsService;
 
-  constructor(blogsRepository: BlogsRepository, postsService: PostsService) {
+  constructor(
+    @inject(BlogsRepository) blogsRepository: BlogsRepository,
+    @inject(PostsService) postsService: PostsService,
+  ) {
     this.blogsRepository = blogsRepository;
     this.postsService = postsService;
   }

@@ -1,7 +1,9 @@
 import { WithId } from 'mongodb';
+import { injectable } from 'inversify';
 import { sessionsCollection } from '../../db/db';
 import { DeviceSessionDb } from '../types/security.types';
 
+@injectable()
 export class SecurityRepository {
   async createSession(session: DeviceSessionDb): Promise<void> {
     await sessionsCollection.insertOne(session);

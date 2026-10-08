@@ -1,7 +1,9 @@
 import { ObjectId, WithId } from 'mongodb';
+import { injectable } from 'inversify';
 import { UserDb } from '../../users/types/user.types';
 import { usersCollection } from '../../db/db';
 
+@injectable()
 export class AuthRepository {
   async getByConfirmationCode(code: string): Promise<WithId<UserDb> | null> {
     return usersCollection.findOne({ 'emailConfirmation.code': code });

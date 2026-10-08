@@ -1,16 +1,19 @@
 import { Request, Response } from 'express';
+import { inject, injectable } from 'inversify';
 import { SecurityService } from '../application/security.service';
 import { SecurityQueryRepository } from '../repositories/security.query-repository';
 import { ResultStatus } from '../../core/types/result.types';
 import { resultToErrorResponse } from '../../core/utils/result-status.util';
 import { mapDeviceSessionDbToDeviceSession } from './mappers/devicesessiondb-to-devicesession.mapper';
 
+@injectable()
 export class SecurityController {
   private securityService: SecurityService;
   private securityQueryRepository: SecurityQueryRepository;
 
   constructor(
-    securityService: SecurityService,
+    @inject(SecurityService) securityService: SecurityService,
+    @inject(SecurityQueryRepository)
     securityQueryRepository: SecurityQueryRepository,
   ) {
     this.securityService = securityService;

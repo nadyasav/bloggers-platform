@@ -1,4 +1,5 @@
 import { MongoServerError, ObjectId, WithId } from 'mongodb';
+import { injectable } from 'inversify';
 import { usersCollection } from '../../db/db';
 import { UserDb } from '../types/user.types';
 import { UserNotFoundError } from '../errors/user-not-found.error';
@@ -6,6 +7,7 @@ import { UserAlreadyExistsError } from '../errors/user-already-exists.error';
 
 const DUPLICATE_KEY_ERROR_CODE = 11000;
 
+@injectable()
 export class UsersRepository {
   async getByLogin(login: string): Promise<WithId<UserDb> | null> {
     return usersCollection.findOne({ login });
